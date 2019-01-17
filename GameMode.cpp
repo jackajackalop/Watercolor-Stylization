@@ -255,39 +255,129 @@ void GameMode::update(float elapsed) {
 struct Framebuffers {
 	glm::uvec2 size = glm::uvec2(0,0); //remember the size of the framebuffer
 
-	//This framebuffer is used for fullscreen effects:
-	GLuint color_tex = 0;
+    //control image framebuffer
+	GLuint control_color_tex = 0;
 	GLuint depth_rb = 0;
 	GLuint fb = 0;
 
-	//This framebuffer is used for shadow maps:
+    //color image framebuffer
+    GLuint masked_color_tex = 0;
+    GLuint masked_fb = 0;
+
+    //z buffer framebuffer
+    //TODO maybe dont need bc theres already depth_rb?
+
+    //blurred image framebuffer
+    GLuint blurred_color_tex = 0;
+    GLuint blurred_fb = 0;
+
+    //bleeded image framebuffer
+    GLuint bleeded_color_tex = 0;
+    GLuint bleeded_fb = 0;
+
+    //final watercolor framebuffer
+    GLuint final_color_tex = 0;
+    GLuint final_fb = 0;
+
+    //This framebuffer is used for shadow maps:
 	glm::uvec2 shadow_size = glm::uvec2(0,0);
 	GLuint shadow_color_tex = 0; //DEBUG
 	GLuint shadow_depth_tex = 0;
 	GLuint shadow_fb = 0;
 
 	void allocate(glm::uvec2 const &new_size, glm::uvec2 const &new_shadow_size) {
-		//allocate full-screen framebuffer:
+    //allocate full-screen framebuffer:
 		if (size != new_size) {
 			size = new_size;
 
-			if (color_tex == 0) glGenTextures(1, &color_tex);
-			glBindTexture(GL_TEXTURE_2D, color_tex);
+			if (control_color_tex == 0) glGenTextures(1, &control_color_tex);
+			glBindTexture(GL_TEXTURE_2D, control_color_tex);
 			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, size.x, size.y, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 			glBindTexture(GL_TEXTURE_2D, 0);
-	
+
 			if (depth_rb == 0) glGenRenderbuffers(1, &depth_rb);
 			glBindRenderbuffer(GL_RENDERBUFFER, depth_rb);
 			glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, size.x, size.y);
 			glBindRenderbuffer(GL_RENDERBUFFER, 0);
-	
+
 			if (fb == 0) glGenFramebuffers(1, &fb);
 			glBindFramebuffer(GL_FRAMEBUFFER, fb);
-			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, color_tex, 0);
+			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, control_color_tex, 0);
+			glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depth_rb);
+			check_fb();
+			glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+            if (masked_color_tex == 0) glGenTextures(1, &masked_color_tex);
+			glBindTexture(GL_TEXTURE_2D, masked_color_tex);
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, size.x, size.y, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+			glBindTexture(GL_TEXTURE_2D, 0);
+
+            if (masked_fb == 0) glGenFramebuffers(1, &masked_fb);
+			glBindFramebuffer(GL_FRAMEBUFFER, masked_fb);
+			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
+                    GL_TEXTURE_2D, masked_color_tex, 0);
+			glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT,
+                    GL_RENDERBUFFER, depth_rb);
+			check_fb();
+			glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+            if (blurred_color_tex == 0) glGenTextures(1, &blurred_color_tex);
+			glBindTexture(GL_TEXTURE_2D, blurred_color_tex);
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, size.x, size.y, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+			glBindTexture(GL_TEXTURE_2D, 0);
+
+            if (blurred_fb == 0) glGenFramebuffers(1, &blurred_fb);
+			glBindFramebuffer(GL_FRAMEBUFFER, blurred_fb);
+			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
+                    GL_TEXTURE_2D, blurred_color_tex, 0);
+			glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT,
+                    GL_RENDERBUFFER, depth_rb);
+			check_fb();
+			glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+            if (bleeded_color_tex == 0) glGenTextures(1, &bleeded_color_tex);
+			glBindTexture(GL_TEXTURE_2D, bleeded_color_tex);
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, size.x, size.y, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+			glBindTexture(GL_TEXTURE_2D, 0);
+
+            if (bleeded_fb == 0) glGenFramebuffers(1, &bleeded_fb);
+			glBindFramebuffer(GL_FRAMEBUFFER, bleeded_fb);
+			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
+                    GL_TEXTURE_2D, bleeded_color_tex, 0);
+			glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT,
+                    GL_RENDERBUFFER, depth_rb);
+			check_fb();
+			glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+            if (final_color_tex == 0) glGenTextures(1, &final_color_tex);
+			glBindTexture(GL_TEXTURE_2D, final_color_tex);
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, size.x, size.y, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+			glBindTexture(GL_TEXTURE_2D, 0);
+
+            if (final_fb == 0) glGenFramebuffers(1, &final_fb);
+			glBindFramebuffer(GL_FRAMEBUFFER, final_fb);
+			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
+                    GL_TEXTURE_2D, final_color_tex, 0);
 			glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depth_rb);
 			check_fb();
 			glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -317,7 +407,7 @@ struct Framebuffers {
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 			glBindTexture(GL_TEXTURE_2D, 0);
-	
+
 			if (shadow_fb == 0) glGenFramebuffers(1, &shadow_fb);
 			glBindFramebuffer(GL_FRAMEBUFFER, shadow_fb);
 			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, shadow_color_tex, 0);
@@ -425,7 +515,7 @@ void GameMode::draw(glm::uvec2 const &drawable_size) {
 
 	//Copy scene from color buffer to screen, performing post-processing effects:
 	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, fbs.color_tex);
+	glBindTexture(GL_TEXTURE_2D, fbs.control_color_tex);
 	glUseProgram(*blur_program);
 	glBindVertexArray(*empty_vao);
 
