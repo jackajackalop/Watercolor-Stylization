@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Mode.hpp"
+#include "Load.hpp"
 
 #include "MeshBuffer.hpp"
 #include "GL.hpp"
@@ -27,6 +28,16 @@ struct GameMode : public Mode {
 
 	//draw is called after update:
 	virtual void draw(glm::uvec2 const &drawable_size) override;
+    void draw_scene(Load<GLuint>* control_tex, Load<GLuint>* color_tex,
+        Load<GLuint>* depth_tex);
+    void draw_mrt_blur(Load<GLuint> color_tex, Load<GLuint> depth_tex,
+                                                    Load<GLuint> conrol_tex,
+            Load<GLuint>* blurred_tex, Load<GLuint>* bleeded_tex);
+    void draw_surface(Load<GLuint> paper_tex, Load<GLuint> normal_map_tex,
+            Load<GLuint>* surface_tex);
+    void draw_stylization(Load<GLuint> control_tex, Load<GLuint> surface_tex,
+            Load<GLuint> blurred_tex, Load<GLuint> bleeded_tex,
+            Load<GLuint>* depth_tex);
 
 	float camera_spin = 0.0f;
 	float spot_spin = 0.0f;
