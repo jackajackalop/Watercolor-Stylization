@@ -144,12 +144,18 @@ Load< GLuint > white_tex(LoadTagDefault, [](){
 });
 
 //TODO not sure if this is how to set up textures :')
+//also w and h probably shouldn't be 1 but idk what to set it to
+int w;
+int h;
+GLuint control_image, color_image, depth_image, blurred_image, bleeded_image,
+       surface_image, final_image;
+GLuint paper_image, normal_map_image;
 Load< GLuint > control_tex(LoadTagDefault, [](){
 	GLuint tex = 0;
 	glGenTextures(1, &tex);
 	glBindTexture(GL_TEXTURE_2D, tex);
-	glm::u8vec4 white(0xff, 0xff, 0xff, 0xff);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 1, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE, glm::value_ptr(white));
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 1, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE,
+            NULL);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -164,8 +170,8 @@ Load< GLuint > color_tex(LoadTagDefault, [](){
 	GLuint tex = 0;
 	glGenTextures(1, &tex);
 	glBindTexture(GL_TEXTURE_2D, tex);
-	glm::u8vec4 white(0xff, 0xff, 0xff, 0xff);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 1, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE, glm::value_ptr(white));
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 1, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE,
+            NULL);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -174,13 +180,13 @@ Load< GLuint > color_tex(LoadTagDefault, [](){
 
 	return new GLuint(tex);
 });
-
+//TODO depth probably shouldn't be rgb?
 Load< GLuint > depth_tex(LoadTagDefault, [](){
 	GLuint tex = 0;
 	glGenTextures(1, &tex);
 	glBindTexture(GL_TEXTURE_2D, tex);
-	glm::u8vec4 white(0xff, 0xff, 0xff, 0xff);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 1, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE, glm::value_ptr(white));
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 1, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE,
+            NULL);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -194,8 +200,8 @@ Load< GLuint > blurred_tex(LoadTagDefault, [](){
 	GLuint tex = 0;
 	glGenTextures(1, &tex);
 	glBindTexture(GL_TEXTURE_2D, tex);
-	glm::u8vec4 white(0xff, 0xff, 0xff, 0xff);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 1, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE, glm::value_ptr(white));
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 1, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE,
+            NULL);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -209,8 +215,8 @@ Load< GLuint > bleeded_tex(LoadTagDefault, [](){
 	GLuint tex = 0;
 	glGenTextures(1, &tex);
 	glBindTexture(GL_TEXTURE_2D, tex);
-	glm::u8vec4 white(0xff, 0xff, 0xff, 0xff);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 1, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE, glm::value_ptr(white));
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 1, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE,
+            NULL);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -224,8 +230,8 @@ Load< GLuint > surface_tex(LoadTagDefault, [](){
 	GLuint tex = 0;
 	glGenTextures(1, &tex);
 	glBindTexture(GL_TEXTURE_2D, tex);
-	glm::u8vec4 white(0xff, 0xff, 0xff, 0xff);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 1, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE, glm::value_ptr(white));
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 1, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE,
+            NULL);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -239,8 +245,8 @@ Load< GLuint > final_tex(LoadTagDefault, [](){
 	GLuint tex = 0;
 	glGenTextures(1, &tex);
 	glBindTexture(GL_TEXTURE_2D, tex);
-	glm::u8vec4 white(0xff, 0xff, 0xff, 0xff);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 1, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE, glm::value_ptr(white));
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 1, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE,
+            NULL);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -249,6 +255,7 @@ Load< GLuint > final_tex(LoadTagDefault, [](){
 
 	return new GLuint(tex);
 });
+
 Scene::Transform *camera_parent_transform = nullptr;
 Scene::Camera *camera = nullptr;
 Scene::Transform *spot_parent_transform = nullptr;
@@ -270,7 +277,18 @@ Load< Scene > scene(LoadTagDefault, [](){
 	depth_program_info.vao = *meshes_for_depth_program;
 	depth_program_info.mvp_mat4  = depth_program->object_to_clip_mat4;
 
+    //TODO uhhh not sure if this is what was supposed to happen or if its a
+    //dirty hack that'll ruin my life later
+    control_image = *control_tex;
+    color_image = *color_tex;
+    depth_image = *depth_tex;
+    blurred_image = *blurred_tex;
+    bleeded_image = *bleeded_tex;
+    surface_image = *surface_tex;
+    final_image = *final_tex;
 
+    paper_image = *paper_tex;
+    normal_map_image = *normal_map_tex;
 	//load transform hierarchy:
 	ret->load(data_path("vignette.scene"), [&](Scene &s, Scene::Transform *t, std::string const &m){
 		Scene::Object *obj = s.new_object(t);
@@ -369,7 +387,7 @@ struct Framebuffers {
 	glm::uvec2 size = glm::uvec2(0,0); //remember the size of the framebuffer
 
     //control image framebuffer
-	GLuint color_tex = 0;
+	GLuint fbcolor_tex = 0;
 	GLuint depth_rb = 0;
 	GLuint fb = 0;
 
@@ -384,8 +402,8 @@ struct Framebuffers {
 		if (size != new_size) {
 			size = new_size;
 
-			if (color_tex == 0) glGenTextures(1, &color_tex);
-			glBindTexture(GL_TEXTURE_2D, color_tex);
+			if (fbcolor_tex == 0) glGenTextures(1, &fbcolor_tex);
+			glBindTexture(GL_TEXTURE_2D, fbcolor_tex);
 			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, size.x, size.y, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
@@ -400,7 +418,7 @@ struct Framebuffers {
 
 			if (fb == 0) glGenFramebuffers(1, &fb);
 			glBindFramebuffer(GL_FRAMEBUFFER, fb);
-			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, color_tex, 0);
+			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, fbcolor_tex, 0);
 			glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depth_rb);
 			check_fb();
 			glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -443,25 +461,37 @@ struct Framebuffers {
 	}
 } fbs;
 
-void GameMode::draw_scene(Load<GLuint>* control_tex, Load<GLuint>* color_tex,
-                        Load<GLuint>* depth_tex){
+void GameMode::draw_scene(GLuint* control_image, GLuint* color_image,
+                        GLuint* depth_image){
     scene->draw(camera);
 }
 
-void GameMode::draw_mrt_blur(Load<GLuint> color_tex, Load<GLuint> depth_tex,
-                            Load<GLuint> conrol_tex, Load<GLuint>* blurred_tex,
-                            Load<GLuint>* bleeded_tex){
+void GameMode::draw_mrt_blur(GLuint color_image, GLuint depth_image,
+                            GLuint conrol_image, GLuint* blurred_image,
+                            GLuint* bleeded_image){
+/*    static GLuint fb = 0;
+    if(fb==0) glGenFramebuffers(1, &fb);
+    glBindFramebuffer(GL_FRAMEBUFFER, fb);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D,
+                            *blurred_image, 0);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D,
+                            *bleeded_image, 0);
+
+    GLenum bufs[2] = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1};
+    glDrawBuffers(2, bufs);
+    check_fb();
+*/
+    //set glViewport
+    //run shader
 }
 
-void GameMode::draw_surface(Load<GLuint> paper_tex, Load<GLuint> normal_map_tex,
-                             Load<GLuint>* surface_tex){
+void GameMode::draw_surface(GLuint paper_image, GLuint normal_map_image,
+                             GLuint* surface_image){
 }
 
-void GameMode::draw_stylization(Load<GLuint> control_tex,
-                            Load<GLuint> surface_tex,
-                            Load<GLuint> blurred_tex,
-                            Load<GLuint> bleeded_tex,
-                            Load<GLuint>* depth_tex){
+void GameMode::draw_stylization(GLuint control_image,
+                            GLuint surface_image, GLuint blurred_image,
+                            GLuint bleeded_image, GLuint* final_image){
 
 }
 
@@ -547,13 +577,13 @@ void GameMode::draw(glm::uvec2 const &drawable_size) {
 	//NOTE: however, these are parameters of the texture object, not the binding point, so there is no need to set them *each frame*. I'm doing it here so that you are likely to see that they are being set.
 	glActiveTexture(GL_TEXTURE0);
 
-    draw_scene(&control_tex, &color_tex, &depth_tex);
-    draw_mrt_blur(color_tex, depth_tex, control_tex,
-                            &blurred_tex, &bleeded_tex);
-    draw_surface(paper_tex, normal_map_tex, &surface_tex);
-    draw_stylization(control_tex, surface_tex, blurred_tex, bleeded_tex,
-                            &final_tex);
-	glActiveTexture(GL_TEXTURE1);
+    draw_scene(&control_image, &color_image, &depth_image);
+    draw_mrt_blur(color_image, depth_image, control_image,
+                            &blurred_image, &bleeded_image);
+    draw_surface(paper_image, normal_map_image, &surface_image);
+    draw_stylization(control_image, surface_image, blurred_image, bleeded_image,
+                            &final_image);
+    glActiveTexture(GL_TEXTURE1);
 	glBindTexture(GL_TEXTURE_2D, 0);
 	glActiveTexture(GL_TEXTURE0);
 
@@ -564,7 +594,7 @@ void GameMode::draw(glm::uvec2 const &drawable_size) {
 
 	//Copy scene from color buffer to screen, performing post-processing effects:
 	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, fbs.color_tex);
+	glBindTexture(GL_TEXTURE_2D, fbs.fbcolor_tex);
 	glUseProgram(*blur_program);
 	glBindVertexArray(*empty_vao);
 

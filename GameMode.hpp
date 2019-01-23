@@ -28,16 +28,14 @@ struct GameMode : public Mode {
 
 	//draw is called after update:
 	virtual void draw(glm::uvec2 const &drawable_size) override;
-    void draw_scene(Load<GLuint>* control_tex, Load<GLuint>* color_tex,
-        Load<GLuint>* depth_tex);
-    void draw_mrt_blur(Load<GLuint> color_tex, Load<GLuint> depth_tex,
-                                                    Load<GLuint> conrol_tex,
-            Load<GLuint>* blurred_tex, Load<GLuint>* bleeded_tex);
-    void draw_surface(Load<GLuint> paper_tex, Load<GLuint> normal_map_tex,
-            Load<GLuint>* surface_tex);
-    void draw_stylization(Load<GLuint> control_tex, Load<GLuint> surface_tex,
-            Load<GLuint> blurred_tex, Load<GLuint> bleeded_tex,
-            Load<GLuint>* depth_tex);
+    void draw_scene(GLuint* control_tex, GLuint* color_tex, GLuint* depth_tex);
+    void draw_mrt_blur(GLuint color_tex, GLuint depth_tex, GLuint conrol_tex,
+                        GLuint* blurred_tex, GLuint* bleeded_tex);
+    void draw_surface(GLuint paper_tex, GLuint normal_map_tex,
+                        GLuint* surface_tex);
+    void draw_stylization(GLuint control_tex, GLuint surface_tex,
+                        GLuint blurred_tex, GLuint bleeded_tex,
+                        GLuint* final_tex);
 
 	float camera_spin = 0.0f;
 	float spot_spin = 0.0f;
