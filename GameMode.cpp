@@ -330,15 +330,14 @@ void GameMode::draw_scene(GLuint* control_tex_, GLuint* color_tex_,
 	glUniform3fv(texture_program->sun_color_vec3, 1, glm::value_ptr(glm::vec3(1.0f, 1.0f, 1.0f)));
 	glUniform3fv(texture_program->sun_direction_vec3, 1, glm::value_ptr(glm::normalize(glm::vec3(0.0f, 0.0f,-1.0f))));
 	//use hemisphere light for subtle ambient light:
-	glUniform3fv(texture_program->sky_color_vec3, 1, glm::value_ptr(glm::vec3(0.2f, 0.2f, 0.3f)));
+	glUniform3fv(texture_program->sky_color_vec3, 1, glm::value_ptr(glm::vec3(0.5f, 0.5f, 0.5f)));
 	glUniform3fv(texture_program->sky_direction_vec3, 1, glm::value_ptr(glm::vec3(0.0f, 0.0f, 1.0f)));
-
 
     scene->draw(camera);
 }
 
 void GameMode::draw_mrt_blur(GLuint color_tex, GLuint depth_tex,
-                            GLuint conrol_tex, GLuint* blurred_tex,
+                            GLuint control_tex, GLuint* blurred_tex,
                             GLuint* bleeded_tex){
     static GLuint fb = 0;
     if(fb==0) glGenFramebuffers(1, &fb);
@@ -351,7 +350,33 @@ void GameMode::draw_mrt_blur(GLuint color_tex, GLuint depth_tex,
     GLenum bufs[2] = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1};
     glDrawBuffers(2, bufs);
     check_fb();
+
     //set glViewport
+	glBindFramebuffer(GL_FRAMEBUFFER, fb);
+	glViewport(0,0, textures.size.x, textures.size.y);
+
+	camera->aspect = textures.size.x / float(textures.size.y);
+
+    GLfloat black[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+    glClearBufferfv(GL_COLOR, 0, black);
+    glClearBufferfv(GL_COLOR, 1, black);
+
+	//set up basic OpenGL state:
+	glEnable(GL_DEPTH_TEST);
+	glEnable(GL_BLEND);
+	glBlendEquation(GL_FUNC_ADD);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+	//set up light positions:
+	glUseProgram(texture_program->program);
+
+	//don't use distant directional light at all (color == 0):
+	glUniform3fv(texture_program->sun_color_vec3, 1, glm::value_ptr(glm::vec3(1.0f, 1.0f, 1.0f)));
+	glUniform3fv(texture_program->sun_direction_vec3, 1, glm::value_ptr(glm::normalize(glm::vec3(0.0f, 0.0f,-1.0f))));
+	//use hemisphere light for subtle ambient light:
+	glUniform3fv(texture_program->sky_color_vec3, 1, glm::value_ptr(glm::vec3(0.2f, 0.2f, 0.3f)));
+	glUniform3fv(texture_program->sky_direction_vec3, 1, glm::value_ptr(glm::vec3(0.0f, 0.0f, 1.0f)));
+
     //run shader
 }
 
@@ -372,8 +397,8 @@ void GameMode::draw(glm::uvec2 const &drawable_size) {
     draw_mrt_blur(textures.color_tex, textures.depth_tex, textures.control_tex,
                             &textures.blurred_tex, &textures.bleeded_tex);
     draw_surface(*paper_tex, *normal_map_tex, &textures.surface_tex);
-    draw_stylization(textures.control_tex, textures.surface_tex, textures.blurred_tex,
-                            textures.bleeded_tex, &textures.final_tex);
+    draw_stylization(textures.control_tex, textures.surface_tex,
+            textures.blurred_tex, textures.bleeded_tex, &textures.final_tex);
     glActiveTexture(GL_TEXTURE1);
 	glBindTexture(GL_TEXTURE_2D, 0);
 	glActiveTexture(GL_TEXTURE0);

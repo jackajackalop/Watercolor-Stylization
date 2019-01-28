@@ -10,7 +10,8 @@ TextureProgram::TextureProgram() {
 		"uniform mat4x3 object_to_light;\n"
 		"uniform mat3 normal_to_light;\n"
 		"uniform mat4 light_to_spot;\n"
-		"layout(location=0) in vec4 Position;\n" //note: layout keyword used to make sure that the location-0 attribute is always bound to something
+		"layout(location=0) in vec4 Position;\n"
+        //note: layout keyword used to make sure that the location-0 attribute is always bound to something
 		"in vec3 Normal;\n"
 		"in vec4 Color;\n"
 		"in vec2 TexCoord;\n"
@@ -44,7 +45,9 @@ TextureProgram::TextureProgram() {
 		"in vec4 color;\n"
 		"in vec2 texCoord;\n"
 		"in vec4 spotPosition;\n"
-		"out vec4 fragColor;\n"
+		//"out vec4 fragColor;\n"
+        "layout(location=0) out vec4 control_tex;\n"
+        "layout(location=1) out vec4 color_tex;\n"
 		"void main() {\n"
 		"	vec3 total_light = vec3(0.0, 0.0, 0.0);\n"
 		"	vec3 n = normalize(normal);\n"
@@ -66,10 +69,11 @@ TextureProgram::TextureProgram() {
 		"		float amt = smoothstep(spot_outer_inner.x, spot_outer_inner.y, d);\n"
 		"		float shadow = textureProj(spot_depth_tex, spotPosition);\n"
 		"		total_light += shadow * nl * amt * spot_color;\n"
-		//"		fragColor = vec4(s,s,s, 1.0);\n" //DEBUG: just show shadow
+		//"		control_tex = vec4(s,s,s, 1.0);\n" //DEBUG: just show shadow
 		"	}\n"
 
-		"	fragColor = texture(tex, texCoord) * vec4(color.rgb * total_light, color.a);\n"
+		"	control_tex = texture(tex, texCoord) * vec4(color.rgb * total_light, color.a);\n"
+        "   color_tex = vec4(control_tex.r*1.5, control_tex.g, control_tex.b, 1.0);"
 		"}\n"
 	);
 
