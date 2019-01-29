@@ -373,6 +373,10 @@ void GameMode::draw_mrt_blur(GLuint color_tex, GLuint depth_tex,
 
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, control_tex);
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, depth_tex);
+    glActiveTexture(GL_TEXTURE2);
+    glBindTexture(GL_TEXTURE_2D, color_tex);
 
 	glUseProgram(mrt_program->program);
     glDrawArrays(GL_TRIANGLES, 0, 3);
