@@ -72,6 +72,7 @@ CLIENT_NAMES =
 	vertex_color_program
 	texture_program
 	depth_program
+    mrt_program
 	Scene
 	Mode
 	GameMode

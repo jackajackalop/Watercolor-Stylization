@@ -13,6 +13,7 @@
 #include "load_save_png.hpp"
 #include "texture_program.hpp"
 #include "depth_program.hpp"
+#include "mrt_program.hpp"
 
 #include <glm/gtc/type_ptr.hpp>
 
@@ -323,7 +324,6 @@ void GameMode::draw_scene(GLuint* control_tex_, GLuint* color_tex_,
 	glBlendEquation(GL_FUNC_ADD);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-	//set up light positions:
 	glUseProgram(texture_program->program);
 
 	//don't use distant directional light at all (color == 0):
@@ -337,15 +337,20 @@ void GameMode::draw_scene(GLuint* control_tex_, GLuint* color_tex_,
 }
 
 void GameMode::draw_mrt_blur(GLuint color_tex, GLuint depth_tex,
-                            GLuint control_tex, GLuint* blurred_tex,
-                            GLuint* bleeded_tex){
+                            GLuint control_tex, GLuint* blurred_tex_,
+                            GLuint* bleeded_tex_){
+    assert(blurred_tex_);
+    assert(bleeded_tex_);
+    auto &blurred_tex = *blurred_tex_;
+    auto &bleeded_tex = *bleeded_tex_;
+
     static GLuint fb = 0;
     if(fb==0) glGenFramebuffers(1, &fb);
     glBindFramebuffer(GL_FRAMEBUFFER, fb);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D,
-                            *blurred_tex, 0);
+                            blurred_tex, 0);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D,
-                            *bleeded_tex, 0);
+                            bleeded_tex, 0);
 
     GLenum bufs[2] = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1};
     glDrawBuffers(2, bufs);
@@ -354,7 +359,6 @@ void GameMode::draw_mrt_blur(GLuint color_tex, GLuint depth_tex,
     //set glViewport
 	glBindFramebuffer(GL_FRAMEBUFFER, fb);
 	glViewport(0,0, textures.size.x, textures.size.y);
-
 	camera->aspect = textures.size.x / float(textures.size.y);
 
     GLfloat black[4] = {0.0f, 0.0f, 0.0f, 0.0f};
@@ -367,17 +371,12 @@ void GameMode::draw_mrt_blur(GLuint color_tex, GLuint depth_tex,
 	glBlendEquation(GL_FUNC_ADD);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-	//set up light positions:
-	glUseProgram(texture_program->program);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, control_tex);
 
-	//don't use distant directional light at all (color == 0):
-	glUniform3fv(texture_program->sun_color_vec3, 1, glm::value_ptr(glm::vec3(1.0f, 1.0f, 1.0f)));
-	glUniform3fv(texture_program->sun_direction_vec3, 1, glm::value_ptr(glm::normalize(glm::vec3(0.0f, 0.0f,-1.0f))));
-	//use hemisphere light for subtle ambient light:
-	glUniform3fv(texture_program->sky_color_vec3, 1, glm::value_ptr(glm::vec3(0.2f, 0.2f, 0.3f)));
-	glUniform3fv(texture_program->sky_direction_vec3, 1, glm::value_ptr(glm::vec3(0.0f, 0.0f, 1.0f)));
+	glUseProgram(mrt_program->program);
+    glDrawArrays(GL_TRIANGLES, 0, 3);
 
-    //run shader
 }
 
 void GameMode::draw_surface(GLuint paper_tex, GLuint normal_map_tex,
@@ -410,7 +409,7 @@ void GameMode::draw(glm::uvec2 const &drawable_size) {
 
 	//Copy scene from color buffer to screen, performing post-processing effects:
 	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, textures.control_tex);
+	glBindTexture(GL_TEXTURE_2D, textures.bleeded_tex);
     glDisable(GL_BLEND);
     glDisable(GL_DEPTH_TEST);
 	glUseProgram(*copy_program);
