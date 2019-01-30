@@ -11,8 +11,8 @@ StylizeProgram::StylizeProgram() {
 		"}\n"
 		,
 		"#version 330\n"
-		"uniform sampler2D control_tex;\n"
-        "uniform sampler2D color_tex;\n"
+		"uniform sampler2D color_tex;\n"
+        "uniform sampler2D control_tex;\n"
         "uniform sampler2D blurred_tex;\n"
         "uniform sampler2D bleeded_tex;\n"
         "uniform sampler2D surface_tex;\n"
@@ -29,8 +29,8 @@ StylizeProgram::StylizeProgram() {
 	);
 	glUseProgram(program);
 
-    glUniform1i(glGetUniformLocation(program, "control_tex"), 0);
-    glUniform1i(glGetUniformLocation(program, "color_tex"), 1);
+    glUniform1i(glGetUniformLocation(program, "color_tex"), 0);
+    glUniform1i(glGetUniformLocation(program, "control_tex"), 1);
     glUniform1i(glGetUniformLocation(program, "blurred_tex"), 2);
     glUniform1i(glGetUniformLocation(program, "bleeded_tex"), 3);
     glUniform1i(glGetUniformLocation(program, "surface_tex"), 4);

@@ -11,7 +11,7 @@
 #include "compile_program.hpp" //helper to compile opengl shader programs
 #include "draw_text.hpp" //helper to... um.. draw text
 #include "load_save_png.hpp"
-#include "texture_program.hpp"
+#include "scene_program.hpp"
 #include "depth_program.hpp"
 #include "mrt_program.hpp"
 #include "surface_program.hpp"
@@ -30,8 +30,8 @@ Load< MeshBuffer > meshes(LoadTagDefault, [](){
 	return new MeshBuffer(data_path("vignette.pnct"));
 });
 
-Load< GLuint > meshes_for_texture_program(LoadTagDefault, [](){
-	return new GLuint(meshes->make_vao_for_program(texture_program->program));
+Load< GLuint > meshes_for_scene_program(LoadTagDefault, [](){
+	return new GLuint(meshes->make_vao_for_program(scene_program->program));
 });
 
 Load< GLuint > meshes_for_depth_program(LoadTagDefault, [](){
@@ -139,12 +139,12 @@ Load< Scene > scene(LoadTagDefault, [](){
 	Scene *ret = new Scene;
 
 	//pre-build some program info (material) blocks to assign to each object:
-	Scene::Object::ProgramInfo texture_program_info;
-	texture_program_info.program = texture_program->program;
-	texture_program_info.vao = *meshes_for_texture_program;
-	texture_program_info.mvp_mat4  = texture_program->object_to_clip_mat4;
-	texture_program_info.mv_mat4x3 = texture_program->object_to_light_mat4x3;
-	texture_program_info.itmv_mat3 = texture_program->normal_to_light_mat3;
+	Scene::Object::ProgramInfo scene_program_info;
+	scene_program_info.program = scene_program->program;
+	scene_program_info.vao = *meshes_for_scene_program;
+	scene_program_info.mvp_mat4  = scene_program->object_to_clip_mat4;
+	scene_program_info.mv_mat4x3 = scene_program->object_to_light_mat4x3;
+	scene_program_info.itmv_mat3 = scene_program->normal_to_light_mat3;
 
 	Scene::Object::ProgramInfo depth_program_info;
 	depth_program_info.program = depth_program->program;
@@ -155,7 +155,7 @@ Load< Scene > scene(LoadTagDefault, [](){
 	ret->load(data_path("vignette.scene"), [&](Scene &s, Scene::Transform *t, std::string const &m){
 		Scene::Object *obj = s.new_object(t);
 
-		obj->programs[Scene::Object::ProgramTypeDefault] = texture_program_info;
+		obj->programs[Scene::Object::ProgramTypeDefault] = scene_program_info;
 		if (t->name == "Platform") {
 			obj->programs[Scene::Object::ProgramTypeDefault].textures[0] = *wood_tex;
 		} else if (t->name == "Pedestal") {
@@ -286,22 +286,22 @@ struct Textures {
 	}
 } textures;
 
-void GameMode::draw_scene(GLuint* control_tex_, GLuint* color_tex_,
+void GameMode::draw_scene(GLuint* color_tex_, GLuint* control_tex_,
                         GLuint* depth_tex_){
-    assert(control_tex_);
     assert(color_tex_);
+    assert(control_tex_);
     assert(depth_tex_);
-    auto &control_tex = *control_tex_;
     auto &color_tex = *color_tex_;
+    auto &control_tex = *control_tex_;
     auto &depth_tex = *depth_tex_;
 
     static GLuint fb = 0;
     if(fb==0) glGenFramebuffers(1, &fb);
     glBindFramebuffer(GL_FRAMEBUFFER, fb);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D,
-                            control_tex, 0);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D,
                             color_tex, 0);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D,
+                            control_tex, 0);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D,
                             depth_tex, 0);
     GLenum bufs[2] = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1};
@@ -326,20 +326,25 @@ void GameMode::draw_scene(GLuint* control_tex_, GLuint* color_tex_,
 	glBlendEquation(GL_FUNC_ADD);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-	glUseProgram(texture_program->program);
+	glUseProgram(scene_program->program);
 
 	//don't use distant directional light at all (color == 0):
-	glUniform3fv(texture_program->sun_color_vec3, 1, glm::value_ptr(glm::vec3(1.0f, 1.0f, 1.0f)));
-	glUniform3fv(texture_program->sun_direction_vec3, 1, glm::value_ptr(glm::normalize(glm::vec3(0.0f, 0.0f,-1.0f))));
+	glUniform3fv(scene_program->sun_color_vec3, 1, glm::value_ptr(glm::vec3(1.0f, 1.0f, 1.0f)));
+	glUniform3fv(scene_program->sun_direction_vec3, 1, glm::value_ptr(glm::normalize(glm::vec3(0.0f, 0.0f,-1.0f))));
 	//use hemisphere light for subtle ambient light:
-	glUniform3fv(texture_program->sky_color_vec3, 1, glm::value_ptr(glm::vec3(0.5f, 0.5f, 0.5f)));
-	glUniform3fv(texture_program->sky_direction_vec3, 1, glm::value_ptr(glm::vec3(0.0f, 0.0f, 1.0f)));
+	glUniform3fv(scene_program->sky_color_vec3, 1, glm::value_ptr(glm::vec3(0.5f, 0.5f, 0.5f)));
+	glUniform3fv(scene_program->sky_direction_vec3, 1, glm::value_ptr(glm::vec3(0.0f, 0.0f, 1.0f)));
 
     scene->draw(camera);
+    //TODO
+    //2 make new scene with vertex colors, control colors, low freq textures
+    //update out names for shaders
+    //3 modify export code to take multiple control vertex color layers
+    //1 finish tremor accumulate tremor
 }
 
-void GameMode::draw_mrt_blur(GLuint color_tex, GLuint depth_tex,
-                            GLuint control_tex, GLuint* blurred_tex_,
+void GameMode::draw_mrt_blur(GLuint color_tex, GLuint control_tex,
+                            GLuint depth_tex, GLuint* blurred_tex_,
                             GLuint* bleeded_tex_){
     assert(blurred_tex_);
     assert(bleeded_tex_);
@@ -374,13 +379,13 @@ void GameMode::draw_mrt_blur(GLuint color_tex, GLuint depth_tex,
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, control_tex);
-    glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_2D, depth_tex);
-    glActiveTexture(GL_TEXTURE2);
     glBindTexture(GL_TEXTURE_2D, color_tex);
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, control_tex);
+    glActiveTexture(GL_TEXTURE2);
+    glBindTexture(GL_TEXTURE_2D, depth_tex);
 
-	glUseProgram(mrt_program->program);
+	glUseProgram(mrt_program->program); //TODO change to mrt_blur later
     glDrawArrays(GL_TRIANGLES, 0, 3);
 
 }
@@ -423,7 +428,7 @@ void GameMode::draw_surface(GLuint paper_tex, GLuint normal_map_tex,
     glDrawArrays(GL_TRIANGLES, 0, 3);
 }
 
-void GameMode::draw_stylization(GLuint control_tex, GLuint color_tex,
+void GameMode::draw_stylization(GLuint color_tex, GLuint control_tex,
                             GLuint surface_tex, GLuint blurred_tex,
                             GLuint bleeded_tex, GLuint* final_tex_){
     assert(final_tex_);
@@ -454,9 +459,9 @@ void GameMode::draw_stylization(GLuint control_tex, GLuint color_tex,
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, control_tex);
-    glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D, color_tex);
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, control_tex);
     glActiveTexture(GL_TEXTURE2);
     glBindTexture(GL_TEXTURE_2D, blurred_tex);
     glActiveTexture(GL_TEXTURE3);
@@ -471,11 +476,11 @@ void GameMode::draw_stylization(GLuint control_tex, GLuint color_tex,
 void GameMode::draw(glm::uvec2 const &drawable_size) {
 	textures.allocate(drawable_size);
 
-    draw_scene(&textures.control_tex, &textures.color_tex, &textures.depth_tex);
-    draw_mrt_blur(textures.color_tex, textures.depth_tex, textures.control_tex,
+    draw_scene(&textures.color_tex, &textures.control_tex, &textures.depth_tex);
+    draw_mrt_blur(textures.color_tex, textures.control_tex, textures.depth_tex,
                             &textures.blurred_tex, &textures.bleeded_tex);
     draw_surface(*paper_tex, *normal_map_tex, &textures.surface_tex);
-    draw_stylization(textures.control_tex, textures.color_tex,
+    draw_stylization(textures.color_tex, textures.control_tex,
             textures.surface_tex, textures.blurred_tex, textures.bleeded_tex,
             &textures.final_tex);
     glActiveTexture(GL_TEXTURE1);

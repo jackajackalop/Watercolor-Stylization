@@ -70,7 +70,7 @@ CLIENT_NAMES =
 	data_path
 	compile_program
 	vertex_color_program
-	texture_program
+	scene_program
 	depth_program
     mrt_program
     surface_program

@@ -11,9 +11,9 @@ MRTProgram::MRTProgram() {
 		"}\n"
 		,
 		"#version 330\n"
-		"uniform sampler2D control_tex;\n"
+		"uniform sampler2D color_tex;\n"
+        "uniform sampler2D control_tex;\n"
         "uniform sampler2D depth_tex;\n"
-        "uniform sampler2D color_tex;\n"
         "layout(location=0) out vec4 bleeded_tex;\n"
         "layout(location=1) out vec4 blurred_tex;\n"
 		"void main() {\n"
@@ -24,9 +24,9 @@ MRTProgram::MRTProgram() {
 	);
 	glUseProgram(program);
 
-    glUniform1i(glGetUniformLocation(program, "control_tex"), 0);
-    glUniform1i(glGetUniformLocation(program, "depth_tex"), 1);
-    glUniform1i(glGetUniformLocation(program, "color_tex"), 2);
+    glUniform1i(glGetUniformLocation(program, "color_tex"), 0);
+    glUniform1i(glGetUniformLocation(program, "control_tex"), 1);
+    glUniform1i(glGetUniformLocation(program, "depth_tex"), 2);
 
 	glUseProgram(0);
 
