@@ -14,12 +14,12 @@ MRTBlurProgram::MRTBlurProgram() {
 		"uniform sampler2D color_tex;\n"
         "uniform sampler2D control_tex;\n"
         "uniform sampler2D depth_tex;\n"
-        "layout(location=0) out vec4 bleeded_tex;\n"
-        "layout(location=1) out vec4 blurred_tex;\n"
+        "layout(location=0) out vec4 bleeded_out;\n"
+        "layout(location=1) out vec4 blurred_out;\n"
 		"void main() {\n"
 		"	vec4 fragColor = texelFetch(control_tex, ivec2(gl_FragCoord.xy), 0);\n"
-        "   bleeded_tex = vec4(fragColor.r, fragColor.g*1.5, fragColor.b, 1.0);"
-        "   blurred_tex = vec4(fragColor.r, fragColor.g, fragColor.b*1.5, 1.0);"
+        "   bleeded_out = vec4(fragColor.r, fragColor.g*1.5, fragColor.b, 1.0);"
+        "   blurred_out = vec4(fragColor.r, fragColor.g, fragColor.b*1.5, 1.0);"
 		"}\n"
 	);
 	glUseProgram(program);

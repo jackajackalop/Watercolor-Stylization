@@ -336,11 +336,6 @@ void GameMode::draw_scene(GLuint* color_tex_, GLuint* control_tex_,
 	glUniform3fv(scene_program->sky_direction_vec3, 1, glm::value_ptr(glm::vec3(0.0f, 0.0f, 1.0f)));
 
     scene->draw(camera);
-    //TODO
-    //2 make new scene with vertex colors, control colors, low freq textures
-    //update out names for shaders
-    //3 modify export code to take multiple control vertex color layers
-    //1 finish tremor accumulate tremor
 }
 
 void GameMode::draw_mrt_blur(GLuint color_tex, GLuint control_tex,

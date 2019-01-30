@@ -16,7 +16,7 @@ StylizeProgram::StylizeProgram() {
         "uniform sampler2D blurred_tex;\n"
         "uniform sampler2D bleeded_tex;\n"
         "uniform sampler2D surface_tex;\n"
-        "layout(location=0) out vec4 final_tex;\n"
+        "layout(location=0) out vec4 final_out;\n"
 		"void main() {\n"
 		"	vec4 controlColor = texelFetch(control_tex, ivec2(gl_FragCoord.xy), 0);\n"
         "   vec4 colorColor = texelFetch(color_tex, ivec2(gl_FragCoord.xy), 0);\n"
@@ -24,7 +24,7 @@ StylizeProgram::StylizeProgram() {
         "   vec4 bleededColor = texelFetch(bleeded_tex, ivec2(gl_FragCoord.xy), 0);\n"
         "   vec4 surfaceColor = texelFetch(surface_tex, ivec2(gl_FragCoord.xy), 0);\n"
 
-        "   final_tex = controlColor*0.2+colorColor*0.2+blurredColor*0.2+bleededColor*0.3+surfaceColor*0.2;\n"
+        "   final_out = controlColor*0.2+colorColor*0.2+blurredColor*0.2+bleededColor*0.3+surfaceColor*0.2;\n"
 		"}\n"
 	);
 	glUseProgram(program);

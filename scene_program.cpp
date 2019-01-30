@@ -14,6 +14,7 @@ SceneProgram::SceneProgram() {
         "uniform float frequency;\n"
         "uniform float tremor_amount;\n"
         "uniform vec2 clip_units_per_pixel;\n"
+        "uniform vec3 viewdir;\n"
 		"layout(location=0) in vec4 Position;\n"
         //note: layout keyword used to make sure that the location-0 attribute is always bound to something
 		"in vec3 Normal;\n"
@@ -30,7 +31,10 @@ SceneProgram::SceneProgram() {
 		"	color = Color;\n"
 		"	texCoord = TexCoord;\n"
         "   vec2 pixel_size = clip_units_per_pixel * gl_Position.w;\n"
+
         "   vec2 voffset = sin(time*speed+(position.x+position.y+position.z)*frequency)*tremor_amount*pixel_size;\n"
+        "   float a = 0.5f;\n"
+   //     "   position = position+vec3(voffset,0)*(1-a(viewdir*normal))"
 		"}\n"
 		,
 		"#version 330\n"
@@ -64,10 +68,16 @@ SceneProgram::SceneProgram() {
 		"	control_out = color;\n"
 		"}\n"
 	);
-
-	object_to_clip_mat4 = glGetUniformLocation(program, "object_to_clip");
+    object_to_clip_mat4 = glGetUniformLocation(program, "object_to_clip");
 	object_to_light_mat4x3 = glGetUniformLocation(program, "object_to_light");
 	normal_to_light_mat3 = glGetUniformLocation(program, "normal_to_light");
+
+	time = glGetUniformLocation(program, "time");
+	speed = glGetUniformLocation(program, "speed");
+	frequency = glGetUniformLocation(program, "frequency");
+    tremor_amount = glGetUniformLocation(program, "tremor_amount");
+	clip_units_per_pixel =glGetUniformLocation(program, "clip_units_per_pixel");
+	viewdir = glGetUniformLocation(program, "viewdir");
 
 	sun_direction_vec3 = glGetUniformLocation(program, "sun_direction");
 	sun_color_vec3 = glGetUniformLocation(program, "sun_color");
