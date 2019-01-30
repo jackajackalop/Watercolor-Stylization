@@ -14,6 +14,7 @@
 #include "texture_program.hpp"
 #include "depth_program.hpp"
 #include "mrt_program.hpp"
+#include "surface_program.hpp"
 
 #include <glm/gtc/type_ptr.hpp>
 
@@ -110,7 +111,7 @@ Load< GLuint > paper_tex(LoadTagDefault, [](){
 });
 
 Load< GLuint > normal_map_tex(LoadTagDefault, [](){
-	return new GLuint(load_texture(data_path("textures/marble.png")));
+	return new GLuint(load_texture(data_path("textures/wood.png")));
 });
 
 Load< GLuint > white_tex(LoadTagDefault, [](){
@@ -384,7 +385,43 @@ void GameMode::draw_mrt_blur(GLuint color_tex, GLuint depth_tex,
 }
 
 void GameMode::draw_surface(GLuint paper_tex, GLuint normal_map_tex,
-                             GLuint* surface_tex){
+                            GLuint* surface_tex_){
+    assert(surface_tex_);
+    auto &surface_tex = *surface_tex_;
+
+    static GLuint fb = 0;
+    if(fb==0) glGenFramebuffers(1, &fb);
+    glBindFramebuffer(GL_FRAMEBUFFER, fb);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D,
+                            surface_tex, 0);
+
+    GLenum bufs[1] = {GL_COLOR_ATTACHMENT0};
+    glDrawBuffers(1, bufs);
+    check_fb();
+
+    //set glViewport
+	glBindFramebuffer(GL_FRAMEBUFFER, fb);
+	glViewport(0,0, textures.size.x, textures.size.y);
+	camera->aspect = textures.size.x / float(textures.size.y);
+
+    GLfloat black[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+    glClearBufferfv(GL_COLOR, 0, black);
+
+	//set up basic OpenGL state:
+	glEnable(GL_DEPTH_TEST);
+	glEnable(GL_BLEND);
+	glBlendEquation(GL_FUNC_ADD);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, paper_tex);
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, normal_map_tex);
+
+	glUseProgram(surface_program->program);
+    glDrawArrays(GL_TRIANGLES, 0, 3);
+
+
 }
 
 void GameMode::draw_stylization(GLuint control_tex,
@@ -413,7 +450,7 @@ void GameMode::draw(glm::uvec2 const &drawable_size) {
 
 	//Copy scene from color buffer to screen, performing post-processing effects:
 	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, textures.bleeded_tex);
+	glBindTexture(GL_TEXTURE_2D, textures.surface_tex);
     glDisable(GL_BLEND);
     glDisable(GL_DEPTH_TEST);
 	glUseProgram(*copy_program);

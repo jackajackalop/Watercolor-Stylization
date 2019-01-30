@@ -73,6 +73,7 @@ CLIENT_NAMES =
 	texture_program
 	depth_program
     mrt_program
+    surface_program
 	Scene
 	Mode
 	GameMode
