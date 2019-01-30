@@ -33,9 +33,9 @@ struct GameMode : public Mode {
                         GLuint* blurred_tex, GLuint* bleeded_tex);
     void draw_surface(GLuint paper_tex, GLuint normal_map_tex,
                         GLuint* surface_tex);
-    void draw_stylization(GLuint control_tex, GLuint surface_tex,
-                        GLuint blurred_tex, GLuint bleeded_tex,
-                        GLuint* final_tex);
+    void draw_stylization(GLuint control_tex, GLuint color_tex,
+                        GLuint surface_tex, GLuint blurred_tex,
+                        GLuint bleeded_tex, GLuint* final_tex);
 
 	float camera_spin = 0.0f;
 	float spot_spin = 0.0f;
