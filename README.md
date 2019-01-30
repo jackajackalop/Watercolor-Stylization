@@ -5,9 +5,13 @@ This is going to be an implementation of the paper "Art-directed Watercolor Styl
 
 # TODO
 1 finish implementing hand tremors
+
     -accumulate time
+    
     -pass in uniforms
+    
 2 make new scene with vertex colors, control colors, low freq textures
+
 3 modify export code to take multiple control vertex color layers
 
 # Build Instructions
