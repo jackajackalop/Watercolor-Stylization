@@ -1,9 +1,9 @@
-#include "mrt_program.hpp"
+#include "mrt_blur_program.hpp"
 
 #include "compile_program.hpp"
 #include "gl_errors.hpp"
 
-MRTProgram::MRTProgram() {
+MRTBlurProgram::MRTBlurProgram() {
 	program = compile_program(
 		"#version 330\n"
 		"void main() {\n"
@@ -33,6 +33,6 @@ MRTProgram::MRTProgram() {
 	GL_ERRORS();
 }
 
-Load< MRTProgram > mrt_program(LoadTagInit, [](){
-	return new MRTProgram();
+Load< MRTBlurProgram > mrt_blur_program(LoadTagInit, [](){
+	return new MRTBlurProgram();
 });

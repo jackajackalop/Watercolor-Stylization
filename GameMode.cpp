@@ -13,7 +13,7 @@
 #include "load_save_png.hpp"
 #include "scene_program.hpp"
 #include "depth_program.hpp"
-#include "mrt_program.hpp"
+#include "mrt_blur_program.hpp"
 #include "surface_program.hpp"
 #include "stylize_program.hpp"
 
@@ -385,7 +385,7 @@ void GameMode::draw_mrt_blur(GLuint color_tex, GLuint control_tex,
     glActiveTexture(GL_TEXTURE2);
     glBindTexture(GL_TEXTURE_2D, depth_tex);
 
-	glUseProgram(mrt_program->program); //TODO change to mrt_blur later
+	glUseProgram(mrt_blur_program->program);
     glDrawArrays(GL_TRIANGLES, 0, 3);
 
 }

@@ -72,7 +72,7 @@ CLIENT_NAMES =
 	vertex_color_program
 	scene_program
 	depth_program
-    mrt_program
+    mrt_blur_program
     surface_program
     stylize_program
 	Scene
