@@ -334,6 +334,14 @@ void GameMode::draw_scene(GLuint* color_tex_, GLuint* control_tex_,
 	//use hemisphere light for subtle ambient light:
 	glUniform3fv(scene_program->sky_color_vec3, 1, glm::value_ptr(glm::vec3(0.5f, 0.5f, 0.5f)));
 	glUniform3fv(scene_program->sky_direction_vec3, 1, glm::value_ptr(glm::vec3(0.0f, 0.0f, 1.0f)));
+    glUniform1f(scene_program->time, elapsed_time);
+    glUniform1f(scene_program->speed, speed);
+    glUniform1f(scene_program->frequency, frequency);
+    glUniform1f(scene_program->tremor_amount, tremor_amount);
+    glUniform2fv(scene_program->clip_units_per_pixel, 1,
+            glm::value_ptr(glm::vec2(2/textures.size.x, 2/textures.size.y)));
+    glUniform3fv(scene_program->viewPos, 1,
+            glm::value_ptr(camera->transform->make_local_to_world()));
 
     scene->draw(camera);
 }
@@ -470,6 +478,9 @@ void GameMode::draw_stylization(GLuint color_tex, GLuint control_tex,
 
 void GameMode::draw(glm::uvec2 const &drawable_size) {
 	textures.allocate(drawable_size);
+
+    auto current_time = std::chrono::steady_clock::now();
+    elapsed_time = (current_time-start_time).count();
 
     draw_scene(&textures.color_tex, &textures.control_tex, &textures.depth_tex);
     draw_mrt_blur(textures.color_tex, textures.control_tex, textures.depth_tex,

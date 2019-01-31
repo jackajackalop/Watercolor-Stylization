@@ -9,6 +9,7 @@
 #include <SDL.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/quaternion.hpp>
+#include <chrono>
 
 #include <vector>
 
@@ -39,4 +40,10 @@ struct GameMode : public Mode {
 
 	float camera_spin = 0.0f;
 	float spot_spin = 0.0f;
+    std::chrono::steady_clock::time_point start_time =
+        std::chrono::steady_clock::now();
+    float elapsed_time;
+    float speed = 0.2f;
+    float frequency = 0.2f;
+    float tremor_amount = 0.2f;
 };

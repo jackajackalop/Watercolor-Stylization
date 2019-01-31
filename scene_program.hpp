@@ -15,7 +15,7 @@ struct SceneProgram {
     GLuint frequency = -1U;
     GLuint tremor_amount = -1U;
     GLuint clip_units_per_pixel = -1U;
-    GLuint viewdir = -1U;
+    GLuint viewPos = -1U;
 
 	GLuint sun_direction_vec3 = -1U; //direction *to* sun
 	GLuint sun_color_vec3 = -1U;
