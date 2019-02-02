@@ -339,7 +339,7 @@ void GameMode::draw_scene(GLuint* color_tex_, GLuint* control_tex_,
     glUniform1f(scene_program->frequency, frequency);
     glUniform1f(scene_program->tremor_amount, tremor_amount);
     glUniform2fv(scene_program->clip_units_per_pixel, 1,
-            glm::value_ptr(glm::vec2(2/textures.size.x, 2/textures.size.y)));
+        glm::value_ptr(glm::vec2(2.f/textures.size.x, 2.f/textures.size.y)));
     glUniform3fv(scene_program->viewPos, 1,
             glm::value_ptr(camera->transform->make_local_to_world()));
 
