@@ -43,7 +43,7 @@ struct GameMode : public Mode {
     std::chrono::steady_clock::time_point start_time =
         std::chrono::steady_clock::now();
     float elapsed_time;
-    float speed = 0.2f;
+    float speed = 0.1f;
     float frequency = 0.2f;
-    float tremor_amount = 0.2f;
+    float tremor_amount = 0.1f;
 };

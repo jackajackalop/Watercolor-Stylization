@@ -499,7 +499,7 @@ void GameMode::draw(glm::uvec2 const &drawable_size) {
 
 	//Copy scene from color buffer to screen, performing post-processing effects:
 	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, textures.control_tex);
+	glBindTexture(GL_TEXTURE_2D, textures.color_tex);
     glDisable(GL_BLEND);
     glDisable(GL_DEPTH_TEST);
 	glUseProgram(*copy_program);

@@ -35,9 +35,9 @@ SceneProgram::SceneProgram() {
 		"	texCoord = TexCoord;\n"
         "   vec2 pixel_size = clip_units_per_pixel * gl_Position.w;\n"
         "   vec2 voffset = sin(time*speed+(gl_Position.x+gl_Position.y+gl_Position.z)*frequency)*tremor_amount*pixel_size;\n"
-        "   float a = 1.f;\n"
+        "   float a = 0.8f;\n"
         "   vec3 viewDir = normalize(viewPos-position);\n"
-        "   gl_Position = gl_Position+vec4(voffset,0, 0)*(1-a*dot(viewDir,normal));\n"
+        "   gl_Position = gl_Position+vec4(voffset,0, 0)*(1.0f-a*dot(viewDir,normal));\n"
 		"}\n"
 		,
 		"#version 330\n"

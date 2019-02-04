@@ -4,9 +4,6 @@ This is going to be an implementation of the paper "Art-directed Watercolor Styl
 [More information on the paper can be found here](http://artineering.io/articles/Art-directed-watercolor-stylization-of-3D-animations-in-real-time/)
 
 # TODO
-1 make new scene with vertex colors, control colors, low freq textures
-
-2 modify export code to take multiple control vertex color layers
 
 # Build Instructions
 
