@@ -27,7 +27,7 @@
 
 
 Load< MeshBuffer > meshes(LoadTagDefault, [](){
-	return new MeshBuffer(data_path("vignette.pnct"));
+	return new MeshBuffer(data_path("test.pnct"));
 });
 
 Load< GLuint > meshes_for_scene_program(LoadTagDefault, [](){
@@ -100,7 +100,7 @@ GLuint load_texture(std::string const &filename) {
 }
 
 Load< GLuint > wood_tex(LoadTagDefault, [](){
-	return new GLuint(load_texture(data_path("textures/wood.png")));
+	return new GLuint(load_texture(data_path("textures/grid.png")));
 });
 
 Load< GLuint > marble_tex(LoadTagDefault, [](){
@@ -152,7 +152,7 @@ Load< Scene > scene(LoadTagDefault, [](){
 	depth_program_info.mvp_mat4  = depth_program->object_to_clip_mat4;
 
 	//load transform hierarchy:
-	ret->load(data_path("vignette.scene"), [&](Scene &s, Scene::Transform *t, std::string const &m){
+	ret->load(data_path("test.scene"), [&](Scene &s, Scene::Transform *t, std::string const &m){
 		Scene::Object *obj = s.new_object(t);
 
 		obj->programs[Scene::Object::ProgramTypeDefault] = scene_program_info;
@@ -499,7 +499,7 @@ void GameMode::draw(glm::uvec2 const &drawable_size) {
 
 	//Copy scene from color buffer to screen, performing post-processing effects:
 	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, textures.color_tex);
+	glBindTexture(GL_TEXTURE_2D, textures.control_tex);
     glDisable(GL_BLEND);
     glDisable(GL_DEPTH_TEST);
 	glUseProgram(*copy_program);

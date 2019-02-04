@@ -23,7 +23,6 @@ void read_chunk(std::istream &from, std::string const &magic, std::vector< T > *
 	if (std::string(header.magic,4) != magic) {
 		throw std::runtime_error("Unexpected magic number in chunk");
 	}
-
 	if (header.size % sizeof(T) != 0) {
 		throw std::runtime_error("Size of chunk not divisible by element size");
 	}

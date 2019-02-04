@@ -19,16 +19,19 @@ SceneProgram::SceneProgram() {
         //note: layout keyword used to make sure that the location-0 attribute is always bound to something
 		"in vec3 Normal;\n"
 		"in vec4 Color;\n"
+        "in vec4 ControlColor;"
 		"in vec2 TexCoord;\n"
 		"out vec3 position;\n"
 		"out vec3 normal;\n"
 		"out vec4 color;\n"
+        "out vec4 controlColor;\n"
 		"out vec2 texCoord;\n"
 		"void main() {\n"
 		"	gl_Position = object_to_clip * Position;\n"
 		"	position = object_to_light * Position;\n"
 		"	normal = normal_to_light * Normal;\n"
 		"	color = Color;\n"
+        "   controlColor = ControlColor;\n"
 		"	texCoord = TexCoord;\n"
         "   vec2 pixel_size = clip_units_per_pixel * gl_Position.w;\n"
         "   vec2 voffset = sin(time*speed+(gl_Position.x+gl_Position.y+gl_Position.z)*frequency)*tremor_amount*pixel_size;\n"
@@ -46,6 +49,7 @@ SceneProgram::SceneProgram() {
 		"in vec3 position;\n"
 		"in vec3 normal;\n"
 		"in vec4 color;\n"
+        "in vec4 controlColor;\n"
 		"in vec2 texCoord;\n"
 		//"out vec4 fragColor;\n"
         "layout(location=0) out vec4 color_out;\n"
@@ -64,8 +68,8 @@ SceneProgram::SceneProgram() {
 		"		total_light += nl * sun_color;\n"
 		"	}\n"
 
-		"	color_out = texture(tex, texCoord) * vec4(total_light, 1.0);\n"
-		"	control_out = color;\n"
+		"	color_out = texture(tex, texCoord) * vec4(color.rgb*1.08f*total_light, 1.0);\n"
+		"	control_out = controlColor;\n"
 		"}\n"
 	);
     object_to_clip_mat4 = glGetUniformLocation(program, "object_to_clip");

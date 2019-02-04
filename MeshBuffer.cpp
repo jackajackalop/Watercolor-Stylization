@@ -86,9 +86,10 @@ MeshBuffer::MeshBuffer(std::string const &filename) {
 			glm::vec3 Position;
 			glm::vec3 Normal;
 			glm::u8vec4 Color;
+			glm::u8vec4 ControlColor;
 			glm::vec2 TexCoord;
 		};
-		static_assert(sizeof(Vertex) == 3*4+3*4+4*1+2*4, "Vertex is packed.");
+		static_assert(sizeof(Vertex) == 3*4+3*4+4*2+2*4, "Vertex is packed.");
 
 		std::vector< Vertex > data;
 		read_chunk(file, "pnct", &data);
@@ -104,6 +105,7 @@ MeshBuffer::MeshBuffer(std::string const &filename) {
 		Position = Attrib(3, GL_FLOAT, GL_FALSE, sizeof(Vertex), offsetof(Vertex, Position));
 		Normal = Attrib(3, GL_FLOAT, GL_FALSE, sizeof(Vertex), offsetof(Vertex, Normal));
 		Color = Attrib(4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(Vertex), offsetof(Vertex, Color));
+		ControlColor = Attrib(4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(Vertex), offsetof(Vertex, ControlColor));
 		TexCoord = Attrib(2, GL_FLOAT, GL_FALSE, sizeof(Vertex), offsetof(Vertex, TexCoord));
 
 	} else {
@@ -187,6 +189,7 @@ GLuint MeshBuffer::make_vao_for_program(GLuint program) const {
 	bind_attribute("Position", Position);
 	bind_attribute("Normal", Normal);
 	bind_attribute("Color", Color);
+    bind_attribute("ControlColor", ControlColor);
 	bind_attribute("TexCoord", TexCoord);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
