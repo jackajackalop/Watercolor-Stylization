@@ -241,6 +241,7 @@ bool GameMode::handle_event(SDL_Event const &evt, glm::uvec2 const &window_size)
 void GameMode::update(float elapsed) {
 	camera_parent_transform->rotation = glm::angleAxis(camera_spin, glm::vec3(0.0f, 0.0f, 1.0f));
 	spot_parent_transform->rotation = glm::angleAxis(spot_spin, glm::vec3(0.0f, 0.0f, 1.0f));
+    elapsed_time+=elapsed;
 }
 
 //GameMode will render to some offscreen framebuffer(s).
@@ -322,7 +323,7 @@ void GameMode::draw_scene(GLuint* color_tex_, GLuint* control_tex_,
 
 	//set up basic OpenGL state:
 	glEnable(GL_DEPTH_TEST);
-	glEnable(GL_BLEND);
+	glDisable(GL_BLEND);
 	glBlendEquation(GL_FUNC_ADD);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
@@ -478,9 +479,6 @@ void GameMode::draw_stylization(GLuint color_tex, GLuint control_tex,
 
 void GameMode::draw(glm::uvec2 const &drawable_size) {
 	textures.allocate(drawable_size);
-
-    auto current_time = std::chrono::steady_clock::now();
-    elapsed_time = (current_time-start_time).count();
 
     draw_scene(&textures.color_tex, &textures.control_tex, &textures.depth_tex);
     draw_mrt_blur(textures.color_tex, textures.control_tex, textures.depth_tex,

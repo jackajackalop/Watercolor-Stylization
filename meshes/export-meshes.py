@@ -35,6 +35,7 @@ class FileType:
         self.normal = (b"n" in magic)
         self.color = (b"c" in magic)
         self.texcoord = (b"t" in magic)
+        self.geonormal = (b"g" in magic)
         self.as_lines = as_lines
         self.vertex_bytes = 0
         if self.position: self.vertex_bytes += 3 * 4
@@ -121,6 +122,7 @@ for obj in bpy.data.objects:
         bpy.ops.object.mode_set(mode='OBJECT')
 
         #compute normals (respecting face smoothing):
+        mesh.calc_normals()
         mesh.calc_normals_split()
 
     #record mesh name, start position and vertex count in the index:
@@ -169,7 +171,9 @@ for obj in bpy.data.objects:
                 vertex = mesh.vertices[loop.vertex_index]
                 for x in vertex.co:
                     data += struct.pack('f', x)
+                    #TODO export vertex normals too
                 if filetype.normal:
+                    print(loop.normal)
                     for x in loop.normal:
                         data += struct.pack('f', x)
                 if filetype.color:
