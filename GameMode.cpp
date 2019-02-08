@@ -27,7 +27,7 @@
 
 
 Load< MeshBuffer > meshes(LoadTagDefault, [](){
-	return new MeshBuffer(data_path("test.pnct"));
+	return new MeshBuffer(data_path("test.pgct"));
 });
 
 Load< GLuint > meshes_for_scene_program(LoadTagDefault, [](){

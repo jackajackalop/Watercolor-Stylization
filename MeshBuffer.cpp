@@ -108,6 +108,35 @@ MeshBuffer::MeshBuffer(std::string const &filename) {
 		ControlColor = Attrib(4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(Vertex), offsetof(Vertex, ControlColor));
 		TexCoord = Attrib(2, GL_FLOAT, GL_FALSE, sizeof(Vertex), offsetof(Vertex, TexCoord));
 
+	} else if (filename.size() >= 5 && filename.substr(filename.size()-5) == ".pgct") {
+		struct Vertex {
+			glm::vec3 Position;
+            glm::vec3 GeoNormal;
+			glm::vec3 Normal;
+			glm::u8vec4 Color;
+			glm::u8vec4 ControlColor;
+			glm::vec2 TexCoord;
+		};
+		static_assert(sizeof(Vertex) == 3*4+3*4+3*4+4*2+2*4, "Vertex is packed.");
+
+		std::vector< Vertex > data;
+		read_chunk(file, "pgct", &data);
+
+		//upload data:
+		glBindBuffer(GL_ARRAY_BUFFER, vbo);
+		glBufferData(GL_ARRAY_BUFFER, data.size() * sizeof(Vertex), data.data(), GL_STATIC_DRAW);
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+		total = GLuint(data.size()); //store total for later checks on index
+
+		//store attrib locations:
+		Position = Attrib(3, GL_FLOAT, GL_FALSE, sizeof(Vertex), offsetof(Vertex, Position));
+        GeoNormal = Attrib(3, GL_FLOAT, GL_FALSE, sizeof(Vertex), offsetof(Vertex, GeoNormal));
+		Normal = Attrib(3, GL_FLOAT, GL_FALSE, sizeof(Vertex), offsetof(Vertex, Normal));
+		Color = Attrib(4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(Vertex), offsetof(Vertex, Color));
+		ControlColor = Attrib(4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(Vertex), offsetof(Vertex, ControlColor));
+		TexCoord = Attrib(2, GL_FLOAT, GL_FALSE, sizeof(Vertex), offsetof(Vertex, TexCoord));
+
 	} else {
 		throw std::runtime_error("Unknown file type '" + filename + "'");
 	}
@@ -187,6 +216,7 @@ GLuint MeshBuffer::make_vao_for_program(GLuint program) const {
 		}
 	};
 	bind_attribute("Position", Position);
+    bind_attribute("GeoNormal", GeoNormal);
 	bind_attribute("Normal", Normal);
 	bind_attribute("Color", Color);
     bind_attribute("ControlColor", ControlColor);

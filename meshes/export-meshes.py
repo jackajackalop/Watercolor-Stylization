@@ -32,13 +32,14 @@ class FileType:
     def __init__(self, magic, as_lines = False):
         self.magic = magic
         self.position = (b"p" in magic)
-        self.normal = (b"n" in magic)
         self.color = (b"c" in magic)
         self.texcoord = (b"t" in magic)
         self.geonormal = (b"g" in magic)
+        self.normal = (b"n" in magic) or (b"g" in magic)
         self.as_lines = as_lines
         self.vertex_bytes = 0
         if self.position: self.vertex_bytes += 3 * 4
+        if self.geonormal: self.vertex_bytes += 3 * 4
         if self.normal: self.vertex_bytes += 3 * 4
         if self.color: self.vertex_bytes += 4
         if self.texcoord: self.vertex_bytes += 2 * 4
@@ -53,6 +54,7 @@ filetypes = {
     ".pct" : FileType(b"pct."),
     ".pnt" : FileType(b"pnt."),
     ".pnct" : FileType(b"pnct"),
+    ".pgct" : FileType(b"pgct")
 }
 
 filetype = None
@@ -171,9 +173,10 @@ for obj in bpy.data.objects:
                 vertex = mesh.vertices[loop.vertex_index]
                 for x in vertex.co:
                     data += struct.pack('f', x)
-                    #TODO export vertex normals too
+                if filetype.geonormal:
+                    for x in vertex.normal:
+                        data+=struct.pack('f', x)
                 if filetype.normal:
-                    print(loop.normal)
                     for x in loop.normal:
                         data += struct.pack('f', x)
                 if filetype.color:

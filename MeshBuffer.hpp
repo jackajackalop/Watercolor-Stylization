@@ -24,6 +24,7 @@ struct MeshBuffer {
 	};
 
 	Attrib Position;
+    Attrib GeoNormal;
 	Attrib Normal;
 	Attrib Color;
     Attrib ControlColor;
