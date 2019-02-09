@@ -333,7 +333,7 @@ void GameMode::draw_scene(GLuint* color_tex_, GLuint* control_tex_,
 	glUniform3fv(scene_program->sun_color_vec3, 1, glm::value_ptr(glm::vec3(1.0f, 1.0f, 1.0f)));
 	glUniform3fv(scene_program->sun_direction_vec3, 1, glm::value_ptr(glm::normalize(glm::vec3(0.0f, 0.0f,-1.0f))));
 	//use hemisphere light for subtle ambient light:
-	glUniform3fv(scene_program->sky_color_vec3, 1, glm::value_ptr(glm::vec3(0.5f, 0.5f, 0.5f)));
+	glUniform3fv(scene_program->sky_color_vec3, 1, glm::value_ptr(glm::vec3(0.7f, 0.7f, 0.7f)));
 	glUniform3fv(scene_program->sky_direction_vec3, 1, glm::value_ptr(glm::vec3(0.0f, 0.0f, 1.0f)));
     glUniform1f(scene_program->time, elapsed_time);
     glUniform1f(scene_program->speed, speed);

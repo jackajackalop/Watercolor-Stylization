@@ -81,13 +81,13 @@ SceneProgram::SceneProgram() {
 		"	control_out = controlColor;\n"
 
         //pixel shader stuff (dilution, pigment turbulence)
-        //TODO hmm light direction isn't just sky_direction but idk how to do
-        "   vec3 light_direction = (sky_direction+sun_direction)/2.f;\n"
-        "   float DA = (dot(light_direction, geoNormal)+(dA-1.f))/dA;\n"
-        "   vec4 cangiante = color_out+(DA*cangiante_variable);\n"
+        "   float DA = 1.3f*(dot(sky_direction, geoNormal)+(dA-1.f))/dA+(dot(sun_direction, geoNormal)+(dA-1.f))/dA;\n"
+        //"   float DA = (dot(light_direction, geoNormal)+(dA-1.f))/dA;\n"
+        //"   float DA = (dot(sky_direction, geoNormal)+(dA-1.f))/dA;\n"
+        //TODO how is this supposed to cause a hue shift?
+        "   vec4 cangiante = color_out+DA*cangiante_variable;\n"
         "   vec4 paper = vec4(1.f, 1.f, 1.f, 1.f);\n" //TODO maybe change later?
         "   color_out = dilution_variable*DA*(paper-cangiante)+cangiante;\n"
-        //"   color_out = cangiante;\n"
 		"}\n"
 	);
     object_to_clip_mat4 = glGetUniformLocation(program, "object_to_clip");
