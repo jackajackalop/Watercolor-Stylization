@@ -44,4 +44,7 @@ struct GameMode : public Mode {
     float speed = 5.f;
     float frequency = 0.2f;
     float tremor_amount = 1.f;
+    float dA = 0.9f;
+    float cangiante_variable = 0.7f;
+    float dilution_variable = 0.8f;
 };

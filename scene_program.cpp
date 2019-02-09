@@ -50,7 +50,10 @@ SceneProgram::SceneProgram() {
 		"uniform vec3 sun_color;\n"
 		"uniform vec3 sky_direction;\n"
 		"uniform vec3 sky_color;\n"
-		"uniform sampler2D tex;\n"
+        "uniform float dA;\n"
+        "uniform float cangiante_variable;\n"
+		"uniform float dilution_variable;\n"
+        "uniform sampler2D tex;\n"
 		"in vec3 position;\n"
         "in vec3 geoNormal;\n"
 		"in vec3 shadingNormal;\n"
@@ -76,6 +79,15 @@ SceneProgram::SceneProgram() {
 
 		"	color_out = texture(tex, texCoord) * vec4(color.rgb*1.08f*total_light, 1.0);\n"
 		"	control_out = controlColor;\n"
+
+        //pixel shader stuff (dilution, pigment turbulence)
+        //TODO hmm light direction isn't just sky_direction but idk how to do
+        "   vec3 light_direction = (sky_direction+sun_direction)/2.f;\n"
+        "   float DA = (dot(light_direction, geoNormal)+(dA-1.f))/dA;\n"
+        "   vec4 cangiante = color_out+(DA*cangiante_variable);\n"
+        "   vec4 paper = vec4(1.f, 1.f, 1.f, 1.f);\n" //TODO maybe change later?
+        "   color_out = dilution_variable*DA*(paper-cangiante)+cangiante;\n"
+        //"   color_out = cangiante;\n"
 		"}\n"
 	);
     object_to_clip_mat4 = glGetUniformLocation(program, "object_to_clip");
@@ -88,6 +100,9 @@ SceneProgram::SceneProgram() {
     tremor_amount = glGetUniformLocation(program, "tremor_amount");
 	clip_units_per_pixel =glGetUniformLocation(program, "clip_units_per_pixel");
 	viewPos = glGetUniformLocation(program, "viewPos");
+    dA = glGetUniformLocation(program, "dA");
+    cangiante_variable = glGetUniformLocation(program, "cangiante_variable");
+    dilution_variable = glGetUniformLocation(program, "dilution_variable");
 
 	sun_direction_vec3 = glGetUniformLocation(program, "sun_direction");
 	sun_color_vec3 = glGetUniformLocation(program, "sun_color");

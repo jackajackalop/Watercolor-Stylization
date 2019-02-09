@@ -343,7 +343,9 @@ void GameMode::draw_scene(GLuint* color_tex_, GLuint* control_tex_,
         glm::value_ptr(glm::vec2(2.f/textures.size.x, 2.f/textures.size.y)));
     glUniform3fv(scene_program->viewPos, 1,
             glm::value_ptr(camera->transform->make_local_to_world()));
-
+    glUniform1f(scene_program->dA, dA);
+    glUniform1f(scene_program->cangiante_variable, cangiante_variable);
+    glUniform1f(scene_program->dilution_variable, dilution_variable);
     scene->draw(camera);
 }
 

@@ -16,6 +16,9 @@ struct SceneProgram {
     GLuint tremor_amount = -1U;
     GLuint clip_units_per_pixel = -1U;
     GLuint viewPos = -1U;
+    GLuint dA = -1U;
+    GLuint cangiante_variable = -1U;
+    GLuint dilution_variable = -1U;
 
 	GLuint sun_direction_vec3 = -1U; //direction *to* sun
 	GLuint sun_color_vec3 = -1U;
