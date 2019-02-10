@@ -88,6 +88,15 @@ SceneProgram::SceneProgram() {
         "   vec4 cangiante = color_out+DA*cangiante_variable;\n"
         "   vec4 paper = vec4(1.f, 1.f, 1.f, 1.f);\n" //TODO maybe change later?
         "   color_out = dilution_variable*DA*(paper-cangiante)+cangiante;\n"
+        "   float ctrl = control_out.a;\n"
+        "   if(ctrl<0.5){\n"
+        "       float exp = 3-(ctrl*4.f);\n"
+        "       color_out.r = pow(color_out.r, exp);\n"
+        "       color_out.g = pow(color_out.g, exp);\n"
+        "       color_out.b = pow(color_out.b, exp);\n"
+        "   }else{\n"
+        "       color_out = (ctrl-0.5f)*2.f*(paper-color_out)+color_out;\n"
+        "   }\n"
 		"}\n"
 	);
     object_to_clip_mat4 = glGetUniformLocation(program, "object_to_clip");
