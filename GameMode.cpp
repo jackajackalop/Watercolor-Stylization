@@ -16,6 +16,7 @@
 #include "mrt_blur_program.hpp"
 #include "surface_program.hpp"
 #include "stylize_program.hpp"
+#include "tweak.hpp"
 
 #include <glm/gtc/type_ptr.hpp>
 
@@ -25,6 +26,9 @@
 #include <cstddef>
 #include <random>
 
+#ifndef TWEAK_ENABLE
+#error "poop"
+#endif
 
 Load< MeshBuffer > meshes(LoadTagDefault, [](){
 	return new MeshBuffer(data_path("test.pgct"));
@@ -135,6 +139,14 @@ Scene::Camera *camera = nullptr;
 Scene::Transform *spot_parent_transform = nullptr;
 Scene::Lamp *spot = nullptr;
 
+float elapsed_time = 0.0f;
+float speed = 5.f;
+float frequency = 0.2f;
+float tremor_amount = 1.f;
+float dA = 0.95f;
+float cangiante_variable = 0.7f;
+float dilution_variable = 0.8f;
+
 Load< Scene > scene(LoadTagDefault, [](){
 	Scene *ret = new Scene;
 
@@ -208,6 +220,14 @@ Load< Scene > scene(LoadTagDefault, [](){
 	}
 	if (!spot) throw std::runtime_error("No 'Spot' spotlight in scene.");
 
+    TWEAK_CONFIG(8888, "tweak-ui.html");
+    TWEAK(speed);
+    TWEAK(frequency);
+    TWEAK(tremor_amount);
+    TWEAK(dA);
+    TWEAK(cangiante_variable);
+    TWEAK(dilution_variable);
+
 	return ret;
 });
 
@@ -242,6 +262,7 @@ void GameMode::update(float elapsed) {
 	camera_parent_transform->rotation = glm::angleAxis(camera_spin, glm::vec3(0.0f, 0.0f, 1.0f));
 	spot_parent_transform->rotation = glm::angleAxis(spot_spin, glm::vec3(0.0f, 0.0f, 1.0f));
     elapsed_time+=elapsed;
+    TWEAK_SYNC();
 }
 
 //GameMode will render to some offscreen framebuffer(s).

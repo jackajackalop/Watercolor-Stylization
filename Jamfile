@@ -27,7 +27,7 @@ if $(OS) = NT { #Windows
 		`PATH=$(KIT_LIBS)/SDL2/bin:$PATH sdl2-config --cflags` #SDL2
 		;
 	LINK = clang++ ;
-	LINKFLAGS = -std=c++14 -g -Wall -Werror ;
+	LINKFLAGS = -std=c++14 -g -Wall -Werror -DTWEAK_ENABLE ;
 	LINKLIBS =
 		-L$(KIT_LIBS)/libpng/lib -lpng                      #libpng
 		-L$(KIT_LIBS)/zlib/lib -lz                          #zlib
@@ -37,13 +37,13 @@ if $(OS) = NT { #Windows
 	KIT_LIBS = kit-libs-linux ;
 	C++ = g++ ;
 	C++FLAGS =
-		-std=c++11 -g -Wall -Werror
+		-std=c++14 -g -Wall -Werror -DTWEAK_ENABLE
 		-I$(KIT_LIBS)/libpng/include                           #libpng
 		-I$(KIT_LIBS)/glm/include                              #glm
 		`PATH=$(KIT_LIBS)/SDL2/bin:$PATH sdl2-config --cflags` #SDL2
 		;
 	LINK = g++ ;
-	LINKFLAGS = -std=c++11 -g -Wall -Werror ;
+	LINKFLAGS = -std=c++14 -g -Wall -Werror -DTWEAK_ENABLE ;
 	LINKLIBS =
 		-L$(KIT_LIBS)/libpng/lib -lpng                      #libpng
 		-L$(KIT_LIBS)/zlib/lib -lz                          #zlib
@@ -75,6 +75,7 @@ CLIENT_NAMES =
     mrt_blur_program
     surface_program
     stylize_program
+    #tweak
 	Scene
 	Mode
 	GameMode

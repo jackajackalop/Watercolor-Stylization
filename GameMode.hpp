@@ -40,11 +40,4 @@ struct GameMode : public Mode {
 
 	float camera_spin = 0.0f;
 	float spot_spin = 0.0f;
-    float elapsed_time = 0.0f;
-    float speed = 5.f;
-    float frequency = 0.2f;
-    float tremor_amount = 1.f;
-    float dA = 0.95f;
-    float cangiante_variable = 0.7f;
-    float dilution_variable = 0.8f;
 };
