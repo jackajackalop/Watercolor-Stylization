@@ -33,8 +33,6 @@ SceneProgram::SceneProgram() {
 		"	position = object_to_light * Position;\n"
 		"	shadingNormal = normal_to_light * Normal;\n"
         "   geoNormal = GeoNormal;\n"
-        //"   shadingNormal = geoNormal;\n"
-        //"   geoNormal = shadingNormal;\n"
 		"	color = Color;\n"
         "   controlColor = ControlColor;\n"
 		"	texCoord = TexCoord;\n"
@@ -77,18 +75,16 @@ SceneProgram::SceneProgram() {
 		"		total_light += nl * sun_color;\n"
 		"	}\n"
 
-		"	color_out = texture(tex, texCoord) * vec4(color.rgb*1.08f*total_light, 1.0);\n"
+		"	color_out = texture(tex, texCoord) * vec4(color.rgb, 1.0);\n"
 		"	control_out = controlColor;\n"
 
         //pixel shader stuff (dilution, pigment turbulence)
-        "   float DA = 1.3f*(dot(sky_direction, geoNormal)+(dA-1.f))/dA+(dot(sun_direction, geoNormal)+(dA-1.f))/dA;\n"
-        //"   float DA = (dot(light_direction, geoNormal)+(dA-1.f))/dA;\n"
-        //"   float DA = (dot(sky_direction, geoNormal)+(dA-1.f))/dA;\n"
-        //TODO how is this supposed to cause a hue shift?
+        "   float DA = (dot(sun_direction, n)+(dA-1.f))/dA;\n"
+        "   DA = clamp(DA, 0.0f, 1.0f);\n"
         "   vec4 cangiante = color_out+DA*cangiante_variable;\n"
         "   vec4 paper = vec4(1.f, 1.f, 1.f, 1.f);\n" //TODO maybe change later?
         "   color_out = dilution_variable*DA*(paper-cangiante)+cangiante;\n"
-        "   float ctrl = control_out.a;\n"
+/*        "   float ctrl = control_out.a;\n"
         "   if(ctrl<0.5){\n"
         "       float exp = 3.f-(ctrl*4.f);\n"
         "       color_out.r = pow(color_out.r, exp);\n"
@@ -96,7 +92,7 @@ SceneProgram::SceneProgram() {
         "       color_out.b = pow(color_out.b, exp);\n"
         "   }else{\n"
         "       color_out = (ctrl-0.5f)*2.f*(paper-color_out)+color_out;\n"
-        "   }\n"
+        "   }\n"*/
 		"}\n"
 	);
     object_to_clip_mat4 = glGetUniformLocation(program, "object_to_clip");

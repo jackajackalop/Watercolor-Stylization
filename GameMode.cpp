@@ -16,7 +16,7 @@
 #include "mrt_blur_program.hpp"
 #include "surface_program.hpp"
 #include "stylize_program.hpp"
-#include "tweak.hpp"
+#include "http-tweak/tweak.hpp"
 
 #include <glm/gtc/type_ptr.hpp>
 
@@ -136,16 +136,28 @@ Load< GLuint > white_tex(LoadTagDefault, [](){
 
 Scene::Transform *camera_parent_transform = nullptr;
 Scene::Camera *camera = nullptr;
-Scene::Transform *spot_parent_transform = nullptr;
-Scene::Lamp *spot = nullptr;
+//Scene::Transform *spot_parent_transform = nullptr;
+//Scene::Lamp *spot = nullptr;
+
+enum Stages{
+    VERTEX_COLORS=0,
+    CONTROL_COLORS=1,
+    HAND_TREMORS=2,
+    PIGMENT=3,
+    GAUSSIAN_BLUR=4,
+    BILATERAL_BLUR=5,
+    SURFACE=6,
+    FINAL=7
+};
 
 float elapsed_time = 0.0f;
 float speed = 5.f;
 float frequency = 0.2f;
 float tremor_amount = 1.f;
-float dA = 0.95f;
-float cangiante_variable = 0.7f;
-float dilution_variable = 0.8f;
+float dA = 0.2f;
+float cangiante_variable = 0.1f;
+float dilution_variable = 0.35f;
+int show = PIGMENT;
 
 Load< Scene > scene(LoadTagDefault, [](){
 	Scene *ret = new Scene;
@@ -192,14 +204,14 @@ Load< Scene > scene(LoadTagDefault, [](){
 			if (camera_parent_transform) throw std::runtime_error("Multiple 'CameraParent' transforms in scene.");
 			camera_parent_transform = t;
 		}
-		if (t->name == "SpotParent") {
+/*		if (t->name == "SpotParent") {
 			if (spot_parent_transform) throw std::runtime_error("Multiple 'SpotParent' transforms in scene.");
 			spot_parent_transform = t;
 		}
-
+*/
 	}
 	if (!camera_parent_transform) throw std::runtime_error("No 'CameraParent' transform in scene.");
-	if (!spot_parent_transform) throw std::runtime_error("No 'SpotParent' transform in scene.");
+//	if (!spot_parent_transform) throw std::runtime_error("No 'SpotParent' transform in scene.");
 
 	//look up the camera:
 	for (Scene::Camera *c = ret->first_camera; c != nullptr; c = c->alloc_next) {
@@ -209,7 +221,7 @@ Load< Scene > scene(LoadTagDefault, [](){
 		}
 	}
 	if (!camera) throw std::runtime_error("No 'Camera' camera in scene.");
-
+/*
 	//look up the spotlight:
 	for (Scene::Lamp *l = ret->first_lamp; l != nullptr; l = l->alloc_next) {
 		if (l->transform->name == "Spot") {
@@ -219,15 +231,14 @@ Load< Scene > scene(LoadTagDefault, [](){
 		}
 	}
 	if (!spot) throw std::runtime_error("No 'Spot' spotlight in scene.");
-
-    TWEAK_CONFIG(8888, "tweak-ui.html");
-    TWEAK(speed);
-    TWEAK(frequency);
-    TWEAK(tremor_amount);
-    TWEAK(dA);
-    TWEAK(cangiante_variable);
-    TWEAK(dilution_variable);
-
+*/
+    TWEAK_CONFIG(8888, data_path("../http-tweak/tweak-ui.html"));
+    static TWEAK(speed);
+    static TWEAK(frequency);
+    static TWEAK(tremor_amount);
+    static TWEAK_HINT(dA, "float 0.0001 1.0");
+    static TWEAK_HINT(cangiante_variable, "float 0.0 1.0");
+    static TWEAK_HINT(dilution_variable, "float 0.0 1.0");
 	return ret;
 });
 
@@ -249,7 +260,7 @@ bool GameMode::handle_event(SDL_Event const &evt, glm::uvec2 const &window_size)
 			return true;
 		}
 		if (evt.motion.state & SDL_BUTTON(SDL_BUTTON_RIGHT)) {
-			spot_spin += 5.0f * evt.motion.xrel / float(window_size.x);
+			//spot_spin += 5.0f * evt.motion.xrel / float(window_size.x);
 			return true;
 		}
 
@@ -260,7 +271,7 @@ bool GameMode::handle_event(SDL_Event const &evt, glm::uvec2 const &window_size)
 
 void GameMode::update(float elapsed) {
 	camera_parent_transform->rotation = glm::angleAxis(camera_spin, glm::vec3(0.0f, 0.0f, 1.0f));
-	spot_parent_transform->rotation = glm::angleAxis(spot_spin, glm::vec3(0.0f, 0.0f, 1.0f));
+//	spot_parent_transform->rotation = glm::angleAxis(spot_spin, glm::vec3(0.0f, 0.0f, 1.0f));
     elapsed_time+=elapsed;
     TWEAK_SYNC();
 }
@@ -317,6 +328,13 @@ void GameMode::draw_scene(GLuint* color_tex_, GLuint* control_tex_,
     auto &control_tex = *control_tex_;
     auto &depth_tex = *depth_tex_;
 
+    if(show < PIGMENT){
+        dA = 0.f;
+        cangiante_variable = 0.f;
+        dilution_variable = 0.f;
+        if(show==VERTEX_COLORS)
+            speed = 0.f;
+    }
     static GLuint fb = 0;
     if(fb==0) glGenFramebuffers(1, &fb);
     glBindFramebuffer(GL_FRAMEBUFFER, fb);
@@ -351,10 +369,10 @@ void GameMode::draw_scene(GLuint* color_tex_, GLuint* control_tex_,
 	glUseProgram(scene_program->program);
 
 	//don't use distant directional light at all (color == 0):
-	glUniform3fv(scene_program->sun_color_vec3, 1, glm::value_ptr(glm::vec3(1.0f, 1.0f, 1.0f)));
-	glUniform3fv(scene_program->sun_direction_vec3, 1, glm::value_ptr(glm::normalize(glm::vec3(0.0f, 0.0f,-1.0f))));
+	glUniform3fv(scene_program->sun_color_vec3, 1, glm::value_ptr(glm::vec3(0.5f, 0.5f, 0.5f)));
+	glUniform3fv(scene_program->sun_direction_vec3, 1, glm::value_ptr(glm::normalize(glm::vec3(0.5f, 0.1f, 1.f))));
 	//use hemisphere light for subtle ambient light:
-	glUniform3fv(scene_program->sky_color_vec3, 1, glm::value_ptr(glm::vec3(0.7f, 0.7f, 0.7f)));
+	glUniform3fv(scene_program->sky_color_vec3, 1, glm::value_ptr(glm::vec3(0.f, 0.f, 0.f)));
 	glUniform3fv(scene_program->sky_direction_vec3, 1, glm::value_ptr(glm::vec3(0.0f, 0.0f, 1.0f)));
     glUniform1f(scene_program->time, elapsed_time);
     glUniform1f(scene_program->speed, speed);
@@ -520,7 +538,19 @@ void GameMode::draw(glm::uvec2 const &drawable_size) {
 
 	//Copy scene from color buffer to screen, performing post-processing effects:
 	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, textures.color_tex);
+    if(show == FINAL)
+    	glBindTexture(GL_TEXTURE_2D, textures.final_tex);
+    else if(show == CONTROL_COLORS)
+        glBindTexture(GL_TEXTURE_2D, textures.control_tex);
+    else if(show == GAUSSIAN_BLUR)
+        glBindTexture(GL_TEXTURE_2D, textures.blurred_tex);
+    else if(show == BILATERAL_BLUR)
+        glBindTexture(GL_TEXTURE_2D, textures.bleeded_tex);
+    else if(show == SURFACE)
+        glBindTexture(GL_TEXTURE_2D, textures.surface_tex);
+    else
+        glBindTexture(GL_TEXTURE_2D, textures.color_tex);
+
     glDisable(GL_BLEND);
     glDisable(GL_DEPTH_TEST);
 	glUseProgram(*copy_program);

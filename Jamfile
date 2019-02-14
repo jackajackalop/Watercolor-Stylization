@@ -75,7 +75,7 @@ CLIENT_NAMES =
     mrt_blur_program
     surface_program
     stylize_program
-    #tweak
+    http-tweak/tweak
 	Scene
 	Mode
 	GameMode
