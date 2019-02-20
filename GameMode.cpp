@@ -13,7 +13,8 @@
 #include "load_save_png.hpp"
 #include "scene_program.hpp"
 #include "depth_program.hpp"
-#include "mrt_blur_program.hpp"
+#include "mrt_blurH_program.hpp"
+#include "mrt_blurV_program.hpp"
 #include "surface_program.hpp"
 #include "stylize_program.hpp"
 #include "http-tweak/tweak.hpp"
@@ -157,7 +158,8 @@ float tremor_amount = 1.f;
 float dA = 0.2f;
 float cangiante_variable = 0.1f;
 float dilution_variable = 0.35f;
-int show = PIGMENT;
+int show = GAUSSIAN_BLUR;//PIGMENT;
+int blur_amount = 10;
 
 Load< Scene > scene(LoadTagDefault, [](){
 	Scene *ret = new Scene;
@@ -239,6 +241,7 @@ Load< Scene > scene(LoadTagDefault, [](){
     static TWEAK_HINT(dA, "float 0.0001 1.0");
     static TWEAK_HINT(cangiante_variable, "float 0.0 1.0");
     static TWEAK_HINT(dilution_variable, "float 0.0 1.0");
+    static TWEAK_HINT(show, "int 0 7");
 	return ret;
 });
 
@@ -288,6 +291,7 @@ struct Textures {
     GLuint bleeded_tex = 0;
     GLuint surface_tex = 0;
     GLuint final_tex = 0;
+    GLuint temp_tex = 0;
 	void allocate(glm::uvec2 const &new_size) {
     //allocate full-screen framebuffer:
 
@@ -310,6 +314,7 @@ struct Textures {
             alloc_tex(&color_tex, GL_RGBA8, GL_RGBA);
             alloc_tex(&depth_tex, GL_DEPTH_COMPONENT24, GL_DEPTH_COMPONENT);
             alloc_tex(&blurred_tex, GL_RGBA32F, GL_RGBA);
+            alloc_tex(&temp_tex, GL_RGBA32F, GL_RGBA);
             alloc_tex(&bleeded_tex, GL_RGBA32F, GL_RGBA);
             alloc_tex(&surface_tex, GL_RGBA8, GL_RGBA);
             alloc_tex(&final_tex, GL_RGBA8, GL_RGBA);
@@ -328,11 +333,15 @@ void GameMode::draw_scene(GLuint* color_tex_, GLuint* control_tex_,
     auto &control_tex = *control_tex_;
     auto &depth_tex = *depth_tex_;
 
+    float dA0 = dA;
+    float cangiante_variable0 = cangiante_variable;
+    float dilution_variable0 = dilution_variable;
+    float speed0 = speed;
     if(show < PIGMENT){
         dA = 0.f;
         cangiante_variable = 0.f;
         dilution_variable = 0.f;
-        if(show==VERTEX_COLORS)
+        if(show<HAND_TREMORS)
             speed = 0.f;
     }
     static GLuint fb = 0;
@@ -386,13 +395,19 @@ void GameMode::draw_scene(GLuint* color_tex_, GLuint* control_tex_,
     glUniform1f(scene_program->cangiante_variable, cangiante_variable);
     glUniform1f(scene_program->dilution_variable, dilution_variable);
     scene->draw(camera);
+    dA = dA0;
+    cangiante_variable = cangiante_variable0;
+    dilution_variable = dilution_variable0;
+    speed = speed0;
 }
 
 void GameMode::draw_mrt_blur(GLuint color_tex, GLuint control_tex,
-                            GLuint depth_tex, GLuint* blurred_tex_,
-                            GLuint* bleeded_tex_){
+                            GLuint depth_tex, GLuint *temp_tex_,
+                            GLuint* blurred_tex_, GLuint* bleeded_tex_){
     assert(blurred_tex_);
     assert(bleeded_tex_);
+    assert(temp_tex_);
+    auto &temp_tex = *temp_tex_;
     auto &blurred_tex = *blurred_tex_;
     auto &bleeded_tex = *bleeded_tex_;
 
@@ -400,7 +415,7 @@ void GameMode::draw_mrt_blur(GLuint color_tex, GLuint control_tex,
     if(fb==0) glGenFramebuffers(1, &fb);
     glBindFramebuffer(GL_FRAMEBUFFER, fb);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D,
-                            blurred_tex, 0);
+                            temp_tex, 0);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D,
                             bleeded_tex, 0);
 
@@ -430,7 +445,17 @@ void GameMode::draw_mrt_blur(GLuint color_tex, GLuint control_tex,
     glActiveTexture(GL_TEXTURE2);
     glBindTexture(GL_TEXTURE_2D, depth_tex);
 
-	glUseProgram(mrt_blur_program->program);
+    glUseProgram(mrt_blurH_program->program);
+    glDrawArrays(GL_TRIANGLES, 0, 3);
+    blurred_tex = temp_tex;
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, temp_tex);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D,
+                            blurred_tex, 0);
+    glDrawBuffers(2, bufs);
+    check_fb();
+
+    glUseProgram(mrt_blurV_program->program);
     glDrawArrays(GL_TRIANGLES, 0, 3);
 
 }
@@ -523,7 +548,8 @@ void GameMode::draw(glm::uvec2 const &drawable_size) {
 
     draw_scene(&textures.color_tex, &textures.control_tex, &textures.depth_tex);
     draw_mrt_blur(textures.color_tex, textures.control_tex, textures.depth_tex,
-                            &textures.blurred_tex, &textures.bleeded_tex);
+                            &textures.temp_tex, &textures.blurred_tex,
+                            &textures.bleeded_tex);
     draw_surface(*paper_tex, *normal_map_tex, &textures.surface_tex);
     draw_stylization(textures.color_tex, textures.control_tex,
             textures.surface_tex, textures.blurred_tex, textures.bleeded_tex,

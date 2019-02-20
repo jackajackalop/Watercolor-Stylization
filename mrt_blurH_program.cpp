@@ -1,9 +1,9 @@
-#include "mrt_blur_program.hpp"
+#include "mrt_blurH_program.hpp"
 
 #include "compile_program.hpp"
 #include "gl_errors.hpp"
 
-MRTBlurProgram::MRTBlurProgram() {
+MRTBlurHProgram::MRTBlurHProgram() {
 	program = compile_program(
 		"#version 330\n"
 		"void main() {\n"
@@ -18,18 +18,19 @@ MRTBlurProgram::MRTBlurProgram() {
         "layout(location=1) out vec4 bleeded_out;\n"
 		"void main() {\n"
 		"	vec4 fragColor = texelFetch(color_tex, ivec2(gl_FragCoord.xy), 0);\n"
-        "   bleeded_out = vec4(fragColor.r, fragColor.g, fragColor.b, 1.0);"
+        "   bleeded_out = vec4(fragColor.r, fragColor.g, fragColor.b, 1.0);\n"
 
         //gaussian blur
-        //http://rastergrid.com/blog/2010/09/efficient-gaussian-blur-with-linear-sampling/
-        "   vec3 offset = vec3(0.0f, 1.3846153846f, 3.2307692308f);\n"
-        "   vec3 weight = vec3(0.2270270270f, 0.3162162162f, 0.0702702703f);\n"
-        "   blurred_out = vec4(fragColor.r, fragColor.g, fragColor.b*1.5, 1.0)*weight[0];"
-        "   for(int i = 0; i<3; ++i){\n"
-        "       blurred_out += texture(color_tex, (gl_FragCoord.xy+vec2(0.0, offset[i]))/textureSize(color_tex, 0))*weight[i];\n"
-        "       blurred_out += texture(color_tex, (gl_FragCoord.xy-vec2(0.0, offset[i]))/textureSize(color_tex,0))*weight[i];\n"
+        //https://learnopengl.com/Advanced-Lighting/Bloom
+        "   float weight[5] = float[](0.227027f, 0.1945946f, 0.1216216f, 0.054054f, 0.016216f);\n"
+        "   blurred_out = fragColor*weight[0];\n"
+        "   for(int i = 1; i<5; ++i){\n"
+        "       blurred_out += texelFetch(color_tex, ivec2(gl_FragCoord.xy+vec2(i, 0)), 0)*weight[i];\n"
+        "       blurred_out += texelFetch(color_tex, ivec2(gl_FragCoord.xy-vec2(i, 0)), 0)*weight[i];\n"
         "   }\n"
+        //"   blurred_out = vec4(1, 0, 1, 1);\n"
 		"}\n"
+
 	);
 	glUseProgram(program);
 
@@ -42,6 +43,6 @@ MRTBlurProgram::MRTBlurProgram() {
 	GL_ERRORS();
 }
 
-Load< MRTBlurProgram > mrt_blur_program(LoadTagInit, [](){
-	return new MRTBlurProgram();
+Load< MRTBlurHProgram > mrt_blurH_program(LoadTagInit, [](){
+	return new MRTBlurHProgram();
 });

@@ -31,7 +31,7 @@ struct GameMode : public Mode {
 	virtual void draw(glm::uvec2 const &drawable_size) override;
     void draw_scene(GLuint* control_tex, GLuint* color_tex, GLuint* depth_tex);
     void draw_mrt_blur(GLuint color_tex, GLuint depth_tex, GLuint control_tex,
-                        GLuint* blurred_tex, GLuint* bleeded_tex);
+                GLuint* temp_tex, GLuint* blurred_tex, GLuint* bleeded_tex);
     void draw_surface(GLuint paper_tex, GLuint normal_map_tex,
                         GLuint* surface_tex);
     void draw_stylization(GLuint control_tex, GLuint color_tex,
