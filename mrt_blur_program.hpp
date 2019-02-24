@@ -10,4 +10,13 @@ struct MRTBlurHProgram {
 	MRTBlurHProgram();
 };
 
+struct MRTBlurVProgram {
+	//opengl program object:
+	GLuint program = 0;
+
+	//uniform locations:
+	MRTBlurVProgram();
+};
+
 extern Load< MRTBlurHProgram > mrt_blurH_program;
+extern Load< MRTBlurVProgram > mrt_blurV_program;
