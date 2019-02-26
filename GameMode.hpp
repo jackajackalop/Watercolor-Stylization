@@ -29,6 +29,7 @@ struct GameMode : public Mode {
 
 	//draw is called after update:
 	virtual void draw(glm::uvec2 const &drawable_size) override;
+    void get_weights();
     void draw_scene(GLuint* control_tex, GLuint* color_tex, GLuint* depth_tex);
     void draw_mrt_blur(GLuint color_tex, GLuint depth_tex, GLuint control_tex,
                 GLuint* temp_tex, GLuint* blurred_tex, GLuint* bleeded_tex);
@@ -40,4 +41,5 @@ struct GameMode : public Mode {
 
 	float camera_spin = 0.0f;
 	float spot_spin = 0.0f;
+    float weights[20];
 };

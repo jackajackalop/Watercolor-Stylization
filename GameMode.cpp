@@ -29,7 +29,6 @@
 #ifndef TWEAK_ENABLE
 #error "poop"
 #endif
-
 Load< MeshBuffer > meshes(LoadTagDefault, [](){
 	return new MeshBuffer(data_path("test.pgct"));
 });
@@ -157,8 +156,23 @@ float tremor_amount = 1.f;
 float dA = 0.2f;
 float cangiante_variable = 0.1f;
 float dilution_variable = 0.35f;
-int show = GAUSSIAN_BLUR;//PIGMENT;
-int blur_amount = 10;
+int show = GAUSSIAN_BLUR;
+float depth_threshold = 0.5f;
+int blur_amount = 5;
+
+//Gaussian weights
+float w1[1] = {1.f};
+float w2[2] = {0.44198f, 0.27901f};
+float w3[3] = {0.250301f, 0.221461, 0.153388f};
+float w4[4] = {0.214607f, 0.189879f, 0.131514f, 0.071303f};
+float w5[5] = {0.20236f, 0.179044f, 0.124009f, 0.067234f, 0.028532f};
+float w6[6] = {0.141836f, 0.13424f, 0.113806f, 0.086425f, 0.05879f, 0.035822f};
+float w7[7] = {0.136498f, 0.129188f, 0.109523f, 0.083173f, 0.056577f, 0.034474f, 0.018816f};
+float w8[8] = {0.105915f, 0.102673f, 0.093531f, 0.080066f, 0.064408f, 0.048689f, 0.034587f, 0.023089f};
+float w9[9] = {0.102934f, 0.099783f, 0.090898f, 0.077812f, 0.062595f, 0.047318f, 0.033613f, 0.022439f, 0.014076f};
+float w10[10] = {0.101253f, 0.098154f, 0.089414f, 0.076542f, 0.061573f, 0.046546f, 0.033065f, 0.022072f, 0.013846f, 0.008162f};
+
+float* weight_arrays[] = {w1, w2, w3, w4, w5, w6, w7, w8, w9, w10};
 
 Load< Scene > scene(LoadTagDefault, [](){
 	Scene *ret = new Scene;
@@ -241,6 +255,8 @@ Load< Scene > scene(LoadTagDefault, [](){
     static TWEAK_HINT(cangiante_variable, "float 0.0 1.0");
     static TWEAK_HINT(dilution_variable, "float 0.0 1.0");
     static TWEAK_HINT(show, "int 0 7");
+    static TWEAK_HINT(depth_threshold, "float 0.0 1.0");
+    static TWEAK_HINT(blur_amount, "int 0 10");
 	return ret;
 });
 
@@ -400,6 +416,15 @@ void GameMode::draw_scene(GLuint* color_tex_, GLuint* control_tex_,
     speed = speed0;
 }
 
+void GameMode::get_weights(){
+    if(blur_amount>0 && blur_amount<=10){
+        auto to_copy = weight_arrays[blur_amount-1];
+        for(int i = 0; i<blur_amount; i++){
+            weights[i] = to_copy[i];
+        }
+    }
+}
+
 void GameMode::draw_mrt_blur(GLuint color_tex, GLuint control_tex,
                             GLuint depth_tex, GLuint *temp_tex_,
                             GLuint* blurred_tex_, GLuint* bleeded_tex_){
@@ -445,7 +470,12 @@ void GameMode::draw_mrt_blur(GLuint color_tex, GLuint control_tex,
     glBindTexture(GL_TEXTURE_2D, depth_tex);
 
     glUseProgram(mrt_blurH_program->program);
+    glUniform1f(mrt_blurH_program->depth_threshold, depth_threshold);
+    glUniform1i(mrt_blurH_program->blur_amount, blur_amount);
+    get_weights();
+    glUniform1fv(mrt_blurH_program->weights, 20, weights);
     glDrawArrays(GL_TRIANGLES, 0, 3);
+
     blurred_tex = temp_tex;
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, temp_tex);
@@ -455,6 +485,9 @@ void GameMode::draw_mrt_blur(GLuint color_tex, GLuint control_tex,
     check_fb();
 
     glUseProgram(mrt_blurV_program->program);
+    glUniform1f(mrt_blurV_program->depth_threshold, depth_threshold);
+    glUniform1i(mrt_blurV_program->blur_amount, blur_amount);
+    glUniform1fv(mrt_blurV_program->weights, 20, weights);
     glDrawArrays(GL_TRIANGLES, 0, 3);
 
 }
