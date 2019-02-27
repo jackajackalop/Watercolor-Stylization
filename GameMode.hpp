@@ -32,7 +32,8 @@ struct GameMode : public Mode {
     void get_weights();
     void draw_scene(GLuint* control_tex, GLuint* color_tex, GLuint* depth_tex);
     void draw_mrt_blur(GLuint color_tex, GLuint depth_tex, GLuint control_tex,
-                GLuint* temp_tex, GLuint* blurred_tex, GLuint* bleeded_tex);
+                GLuint* temp_tex1, GLuint* temp_tex2, GLuint* temp_tex3,
+                GLuint* blurred_tex, GLuint* bleeded_tex);
     void draw_surface(GLuint paper_tex, GLuint normal_map_tex,
                         GLuint* surface_tex);
     void draw_stylization(GLuint control_tex, GLuint color_tex,
