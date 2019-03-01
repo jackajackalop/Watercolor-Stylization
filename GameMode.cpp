@@ -158,7 +158,7 @@ float cangiante_variable = 0.1f;
 float dilution_variable = 0.35f;
 //int show = GAUSSIAN_BLUR;
 int show = BILATERAL_BLUR;
-float depth_threshold = 0.5f;
+float depth_threshold = 0.f;
 int blur_amount = 5;
 
 //Gaussian weights
@@ -307,9 +307,9 @@ struct Textures {
     GLuint bleeded_tex = 0;
     GLuint surface_tex = 0;
     GLuint final_tex = 0;
-    GLuint temp_tex1 = 0;
-    GLuint temp_tex2 = 0;
-    GLuint temp_tex3 = 0;
+    GLuint blur_temp_tex = 0;
+    GLuint bleed_temp_tex = 0;
+    GLuint control_temp_tex = 0;
 	void allocate(glm::uvec2 const &new_size) {
     //allocate full-screen framebuffer:
 
@@ -332,9 +332,9 @@ struct Textures {
             alloc_tex(&color_tex, GL_RGBA8, GL_RGBA);
             alloc_tex(&depth_tex, GL_DEPTH_COMPONENT24, GL_DEPTH_COMPONENT);
             alloc_tex(&blurred_tex, GL_RGBA32F, GL_RGBA);
-            alloc_tex(&temp_tex1, GL_RGBA32F, GL_RGBA);
-            alloc_tex(&temp_tex2, GL_RGBA32F, GL_RGBA);
-            alloc_tex(&temp_tex3, GL_RGBA32F, GL_RGBA);
+            alloc_tex(&blur_temp_tex, GL_RGBA32F, GL_RGBA);
+            alloc_tex(&bleed_temp_tex, GL_RGBA32F, GL_RGBA);
+            alloc_tex(&control_temp_tex, GL_RGBA32F, GL_RGBA);
             alloc_tex(&bleeded_tex, GL_RGBA32F, GL_RGBA);
             alloc_tex(&surface_tex, GL_RGBA8, GL_RGBA);
             alloc_tex(&final_tex, GL_RGBA8, GL_RGBA);
@@ -431,16 +431,16 @@ void GameMode::get_weights(){
 }
 
 void GameMode::draw_mrt_blur(GLuint color_tex, GLuint control_tex,
-                            GLuint depth_tex, GLuint *temp_tex1_, GLuint *temp_tex2_,
-                            GLuint *temp_tex3_, GLuint* blurred_tex_, GLuint* bleeded_tex_){
+        GLuint depth_tex, GLuint *blur_temp_tex_, GLuint *bleed_temp_tex_,
+        GLuint *control_temp_tex_, GLuint* blurred_tex_, GLuint* bleeded_tex_){
     assert(blurred_tex_);
     assert(bleeded_tex_);
-    assert(temp_tex1_);
-    assert(temp_tex2_);
-    assert(temp_tex3_);
-    auto &temp_tex1 = *temp_tex1_;
-    auto &temp_tex2 = *temp_tex2_;
-    auto &temp_tex3 = *temp_tex3_;
+    assert(blur_temp_tex_);
+    assert(bleed_temp_tex_);
+    assert(control_temp_tex_);
+    auto &blur_temp_tex = *blur_temp_tex_;
+    auto &bleed_temp_tex = *bleed_temp_tex_;
+    auto &control_temp_tex = *control_temp_tex_;
     auto &blurred_tex = *blurred_tex_;
     auto &bleeded_tex = *bleeded_tex_;
 
@@ -448,11 +448,11 @@ void GameMode::draw_mrt_blur(GLuint color_tex, GLuint control_tex,
     if(fb==0) glGenFramebuffers(1, &fb);
     glBindFramebuffer(GL_FRAMEBUFFER, fb);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D,
-                            temp_tex1, 0);
+                            blur_temp_tex, 0);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D,
-                            temp_tex2, 0);
+                            bleed_temp_tex, 0);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D,
-                            temp_tex3, 0);
+                            control_temp_tex, 0);
 
     {
         GLenum bufs[3] = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2};
@@ -489,10 +489,9 @@ void GameMode::draw_mrt_blur(GLuint color_tex, GLuint control_tex,
     glUniform1fv(mrt_blurH_program->weights, 20, weights);
     glDrawArrays(GL_TRIANGLES, 0, 3);
 
-    //blurred_tex = temp_tex1;
-    //bleeded_tex = temp_tex2;
-    //control_tex = temp_tex3;
-
+    //blurred_tex = blur_temp_tex;
+    //bleeded_tex = bleed_temp_tex;
+    //control_tex = control_temp_tex;
     static GLuint fb2 = 0;
     if(fb2==0) glGenFramebuffers(1, &fb2);
     glBindFramebuffer(GL_FRAMEBUFFER, fb2);
@@ -504,13 +503,14 @@ void GameMode::draw_mrt_blur(GLuint color_tex, GLuint control_tex,
         GLenum bufs[2] = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1};
         glDrawBuffers(2, bufs);
     }
+    check_fb();
 
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, temp_tex1);
+    glBindTexture(GL_TEXTURE_2D, blur_temp_tex);
     glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_2D, temp_tex2);
+    glBindTexture(GL_TEXTURE_2D, bleed_temp_tex);
     glActiveTexture(GL_TEXTURE2);
-    glBindTexture(GL_TEXTURE_2D, temp_tex3);
+    glBindTexture(GL_TEXTURE_2D, control_temp_tex);
     glActiveTexture(GL_TEXTURE3);
     glBindTexture(GL_TEXTURE_2D, depth_tex);
 
@@ -519,6 +519,7 @@ void GameMode::draw_mrt_blur(GLuint color_tex, GLuint control_tex,
     glUniform1i(mrt_blurV_program->blur_amount, blur_amount);
     glUniform1fv(mrt_blurV_program->weights, 20, weights);
     glDrawArrays(GL_TRIANGLES, 0, 3);
+
     //TODO unbind textues
 
 }
@@ -611,8 +612,9 @@ void GameMode::draw(glm::uvec2 const &drawable_size) {
 
     draw_scene(&textures.color_tex, &textures.control_tex, &textures.depth_tex);
     draw_mrt_blur(textures.color_tex, textures.control_tex, textures.depth_tex,
-                            &textures.temp_tex1, &textures.temp_tex2, &textures.temp_tex3,
-                            &textures.blurred_tex, &textures.bleeded_tex);
+                &textures.blur_temp_tex, &textures.bleed_temp_tex,
+                &textures.control_temp_tex, &textures.blurred_tex,
+                &textures.bleeded_tex);
     draw_surface(*paper_tex, *normal_map_tex, &textures.surface_tex);
     draw_stylization(textures.color_tex, textures.control_tex,
             textures.surface_tex, textures.blurred_tex, textures.bleeded_tex,

@@ -60,7 +60,7 @@
         "       }\n"\
         "//TODO i dont really understand whats going on here"\
         "       control_out = control_in;\n"\
-        "       if (bleed) control_out.b = 1.0;\n"\
+        "       if (bleed) control_out.b = 0.5;\n"\
         "   }\n"\
         "   bleeded_out.a = 1.0;\n"\
         "}\n" \
@@ -80,7 +80,8 @@ MRTBlurHProgram::MRTBlurHProgram() {
     depth_threshold = glGetUniformLocation(program, "depth_threshold");
     blur_amount = glGetUniformLocation(program, "blur_amount");
     weights = glGetUniformLocation(program, "weights");
-    glUniform1i(glGetUniformLocation(program, "color_tex"), 0);
+    glUniform1i(glGetUniformLocation(program, "blur_color_tex"), 0);
+    glUniform1i(glGetUniformLocation(program, "bleed_color_tex"), 0);
     glUniform1i(glGetUniformLocation(program, "control_tex"), 1);
     glUniform1i(glGetUniformLocation(program, "depth_tex"), 2);
 
@@ -96,7 +97,7 @@ MRTBlurVProgram::MRTBlurVProgram() {
         "   gl_Position = vec4(4*(gl_VertexID & 1) -1, 2 * (gl_VertexID &2) -1, 0.0, 1.0);"
 		"}\n"
 		,
-        BLUR_SHADER("ivec2(0,1)")
+        BLUR_SHADER("ivec2(0, i)")
 	);
 	glUseProgram(program);
 
@@ -104,11 +105,10 @@ MRTBlurVProgram::MRTBlurVProgram() {
     blur_amount = glGetUniformLocation(program, "blur_amount");
     weights = glGetUniformLocation(program, "weights");
 
-    glUniform1i(glGetUniformLocation(program, "color_tex"), 0);
-    glUniform1i(glGetUniformLocation(program, "blurred_tex"), 1);
-    glUniform1i(glGetUniformLocation(program, "bleeded_tex"), 2);
-    glUniform1i(glGetUniformLocation(program, "control_tex"), 3);
-    glUniform1i(glGetUniformLocation(program, "depth_tex"), 4);
+    glUniform1i(glGetUniformLocation(program, "blur_color_tex"), 0);
+    glUniform1i(glGetUniformLocation(program, "bleed_color_tex"), 1);
+    glUniform1i(glGetUniformLocation(program, "control_tex"), 2);
+    glUniform1i(glGetUniformLocation(program, "depth_tex"), 3);
 
 	glUseProgram(0);
 
