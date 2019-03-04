@@ -520,7 +520,14 @@ void GameMode::draw_mrt_blur(GLuint color_tex, GLuint control_tex,
     glUniform1fv(mrt_blurV_program->weights, 20, weights);
     glDrawArrays(GL_TRIANGLES, 0, 3);
 
-    //TODO unbind textues
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, 0);
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, 0);
+    glActiveTexture(GL_TEXTURE2);
+    glBindTexture(GL_TEXTURE_2D, 0);
+    glActiveTexture(GL_TEXTURE3);
+    glBindTexture(GL_TEXTURE_2D, 0);
 
 }
 
@@ -560,6 +567,11 @@ void GameMode::draw_surface(GLuint paper_tex, GLuint normal_map_tex,
 
 	glUseProgram(surface_program->program);
     glDrawArrays(GL_TRIANGLES, 0, 3);
+
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, 0);
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, 0);
 }
 
 void GameMode::draw_stylization(GLuint color_tex, GLuint control_tex,
@@ -605,6 +617,18 @@ void GameMode::draw_stylization(GLuint color_tex, GLuint control_tex,
 
 	glUseProgram(stylize_program->program);
     glDrawArrays(GL_TRIANGLES, 0, 3);
+
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, 0);
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, 0);
+    glActiveTexture(GL_TEXTURE2);
+    glBindTexture(GL_TEXTURE_2D, 0);
+    glActiveTexture(GL_TEXTURE3);
+    glBindTexture(GL_TEXTURE_2D, 0);
+    glActiveTexture(GL_TEXTURE4);
+    glBindTexture(GL_TEXTURE_2D, 0);
+
 }
 
 void GameMode::draw(glm::uvec2 const &drawable_size) {
@@ -619,15 +643,9 @@ void GameMode::draw(glm::uvec2 const &drawable_size) {
     draw_stylization(textures.color_tex, textures.control_tex,
             textures.surface_tex, textures.blurred_tex, textures.bleeded_tex,
             &textures.final_tex);
-    glActiveTexture(GL_TEXTURE1);
-	glBindTexture(GL_TEXTURE_2D, 0);
-	glActiveTexture(GL_TEXTURE0);
-
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-	GL_ERRORS();
 
 	//Copy scene from color buffer to screen, performing post-processing effects:
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glActiveTexture(GL_TEXTURE0);
     if(show == FINAL)
     	glBindTexture(GL_TEXTURE_2D, textures.final_tex);
