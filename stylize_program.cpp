@@ -21,10 +21,15 @@ StylizeProgram::StylizeProgram() {
 		"	vec4 controlColor = texelFetch(control_tex, ivec2(gl_FragCoord.xy), 0);\n"
         "   vec4 colorColor = texelFetch(color_tex, ivec2(gl_FragCoord.xy), 0);\n"
         "   vec4 blurredColor = texelFetch(blurred_tex, ivec2(gl_FragCoord.xy), 0);\n"
-        "   vec4 bleededColor = texelFetch(bleeded_tex, ivec2(gl_FragCoord.xy), 0);\n"
+        "   vec4 bleededColor = texelFetch(bleeded_tex, ivec2(gl_FragCoord.xy), 0);\n" //TODO this is supposed to be upsampled??
         "   vec4 surfaceColor = texelFetch(surface_tex, ivec2(gl_FragCoord.xy), 0);\n"
-
-        "   final_out = controlColor*0.2+colorColor*0.2+blurredColor*0.2+bleededColor*0.3+surfaceColor*0.2;\n"
+        "   vec4 colorBleed = controlColor.b*(bleededColor-colorColor)+colorColor;\n"
+        "   vec4 blurDif = blurredColor-colorColor;\n"
+        "   float maxVal = max(blurDif.r, max(blurDif.g, max(blurDif.b, blurDif.a)));\n"
+        "   float exp = 1+controlColor.b*maxVal; \n"
+        "   vec4 edgeDarkening = vec4(pow(colorBleed.r, exp), pow(colorBleed.g, exp), pow(colorBleed.b, exp), colorBleed.a); \n"
+        "   final_out = colorBleed; \n"
+        //"   final_out = controlColor*0.2+colorColor*0.2+blurredColor*0.2+bleededColor*0.3+surfaceColor*0.2;\n"
 		"}\n"
 	);
 	glUseProgram(program);

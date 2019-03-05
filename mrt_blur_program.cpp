@@ -61,9 +61,8 @@
         "       }\n"\
         "//TODO i dont really understand whats going on here"\
         "       control_out = control_in;\n"\
-        "       if (bleed) control_out.b = 0.0;\n"\
+        "       if (bleed) control_out.b = 1.0;\n"\
         "   }\n"\
-        "   bleeded_out.a = 1.0;\n"\
         "}\n" \
 
 

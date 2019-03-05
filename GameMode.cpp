@@ -156,7 +156,7 @@ float tremor_amount = 0.5f;
 float dA = 0.12f;
 float cangiante_variable = 0.1f;
 float dilution_variable = 0.72f;
-int show = BILATERAL_BLUR;
+int show = FINAL;
 float depth_threshold = 0.f;
 int blur_amount = 5;
 
