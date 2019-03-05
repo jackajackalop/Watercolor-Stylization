@@ -48,7 +48,8 @@
         "           if ((zx-depth_threshold) > zxi){ //source is behind\n"\
         "               if (ctrlxi>0) bleed = true;\n"\
         "           } else {\n //source is not behind\n"\
-        "               if (ctrlx>0) bleed = true;\n"\
+        "               //so the paper says to do this, but that seems wrong" \
+        "               //if (ctrlx>0) bleed = true;\n"\
         "           }\n"\
         "           if (bleed) {\n"\
         "               bleeded_out = bleeded_out+texelFetch(bleed_color_tex, ivec2(gl_FragCoord.xy)+OFFSET, 0)*weight21[i+10];\n"\
@@ -60,7 +61,7 @@
         "       }\n"\
         "//TODO i dont really understand whats going on here"\
         "       control_out = control_in;\n"\
-        "       if (bleed) control_out.b = 0.5;\n"\
+        "       if (bleed) control_out.b = 0.0;\n"\
         "   }\n"\
         "   bleeded_out.a = 1.0;\n"\
         "}\n" \

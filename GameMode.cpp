@@ -150,13 +150,12 @@ enum Stages{
 };
 
 float elapsed_time = 0.0f;
-float speed = 5.f;
-float frequency = 0.2f;
-float tremor_amount = 1.f;
-float dA = 0.2f;
+float speed = 13.f;
+float frequency = 0.02f;
+float tremor_amount = 0.5f;
+float dA = 0.12f;
 float cangiante_variable = 0.1f;
-float dilution_variable = 0.35f;
-//int show = GAUSSIAN_BLUR;
+float dilution_variable = 0.72f;
 int show = BILATERAL_BLUR;
 float depth_threshold = 0.f;
 int blur_amount = 5;
