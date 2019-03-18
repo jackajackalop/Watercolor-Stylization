@@ -156,7 +156,7 @@ float tremor_amount = 0.5f;
 float dA = 0.12f;
 float cangiante_variable = 0.1f;
 float dilution_variable = 0.72f;
-int show = FINAL;
+int show = BILATERAL_BLUR;
 float depth_threshold = 0.f;
 int blur_amount = 5;
 
@@ -488,9 +488,9 @@ void GameMode::draw_mrt_blur(GLuint color_tex, GLuint control_tex,
     glUniform1fv(mrt_blurH_program->weights, 20, weights);
     glDrawArrays(GL_TRIANGLES, 0, 3);
 
-    //blurred_tex = blur_temp_tex;
-    //bleeded_tex = bleed_temp_tex;
-    //control_tex = control_temp_tex;
+  //  blurred_tex = blur_temp_tex;
+  //  bleeded_tex = bleed_temp_tex;
+  //  control_tex = control_temp_tex;
     static GLuint fb2 = 0;
     if(fb2==0) glGenFramebuffers(1, &fb2);
     glBindFramebuffer(GL_FRAMEBUFFER, fb2);

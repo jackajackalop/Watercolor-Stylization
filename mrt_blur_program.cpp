@@ -30,38 +30,33 @@
         "   }\n"\
         "//4D joint bilateral blur\n"\
         "//http://dev.theomader.com/gaussian-kernel-calculator/\n"\
-        "   float weight21[21] = float[](0.043959f, 0.045015f, 0.045982f, "\
-                    "0.046852f, 0.047619f, 0.048278f, 0.048825f, 0.049254f, "\
-                    "0.049562f, 0.049748f, 0.049812f, 0.049748f, 0.049562f, "\
-                    "0.049254f, 0.048825f, 0.048278f, 0.047619f, 0.046852f, "\
-                    "0.045982f, 0.045015f, 0.043959f);\n"\
+        "   float weight41[41] = float[](0.02247f, 0.022745f, 0.02301f, 0.023263f, 0.023504f, 0.023733f, 0.023949f, 0.024152f, 0.024341f, 0.024517f, 0.024678f, 0.024825f, 0.024957f, 0.025075f, 0.025177f, 0.025264f, 0.025335f, 0.02539f, 0.02543f, 0.025454f, 0.025462f, 0.025454f, 0.02543f, 0.02539f, 0.025335f, 0.025264f, 0.025177f, 0.025075f, 0.024957f, 0.024825f, 0.024678f, 0.024517f, 0.024341f, 0.024152f, 0.023949f, 0.023733f, 0.023504f, 0.023263f, 0.02301f, 0.022745f, 0.02247f);\n"\
+        "   float weight81[81] = float[](0.011362f, 0.011433f, 0.011502f, 0.011569f, 0.011635f, 0.0117f, 0.011763f, 0.011825f, 0.011885f, 0.011944f, 0.012001f, 0.012056f, 0.01211f, 0.012162f, 0.012213f, 0.012261f, 0.012309f, 0.012354f, 0.012397f, 0.012439f, 0.012479f, 0.012517f, 0.012553f, 0.012588f, 0.01262f, 0.012651f, 0.012679f, 0.012706f, 0.012731f, 0.012754f, 0.012775f, 0.012794f, 0.012811f, 0.012826f, 0.012839f, 0.01285f, 0.012859f, 0.012866f, 0.012871f, 0.012874f, 0.012875f, 0.012874f, 0.012871f, 0.012866f, 0.012859f, 0.01285f, 0.012839f, 0.012826f, 0.012811f, 0.012794f, 0.012775f, 0.012754f, 0.012731f, 0.012706f, 0.012679f, 0.012651f, 0.01262f, 0.012588f, 0.012553f, 0.012517f, 0.012479f, 0.012439f, 0.012397f, 0.012354f, 0.012309f, 0.012261f, 0.012213f, 0.012162f, 0.01211f, 0.012056f, 0.012001f, 0.011944f, 0.011885f, 0.011825f, 0.011763f, 0.0117f, 0.011635f, 0.011569f, 0.011502f, 0.011433f, 0.011362f);\n"\
         "   bleeded_out = vec4(0.0, 0.0, 0.0, 1.0);\n"\
         "   vec4 control_in = texelFetch(control_tex, ivec2(gl_FragCoord.xy), 0);\n"\
         "   float ctrlx=control_in.b;\n"\
-		"   for(int i = -10; i<=10; i++){\n"\
+		"   for(int i = -40; i<=40; i++){\n"\
         "       bool bleed;\n"\
         "       float ctrlxi = texelFetch(control_tex, ivec2(gl_FragCoord.xy)+OFFSET, 0).b;\n"\
         "       if (ctrlx>0 || ctrlxi>0) {\n"\
         "           bleed = false;\n"\
         "           float zx = texelFetch(depth_tex, ivec2(gl_FragCoord.xy), 0).z;\n"\
         "           float zxi = texelFetch(depth_tex, ivec2(gl_FragCoord.xy)+OFFSET, 0).z;\n"\
-        "           if ((zx-depth_threshold) > zxi){ //source is behind\n"\
-        "               if (ctrlxi>0) bleed = true;\n"\
-        "           } else {\n //source is not behind\n"\
-        "               //so the paper says to do this, but that seems wrong" \
-        "               //if (ctrlx>0) bleed = true;\n"\
-        "           }\n"\
+        "           if ((zx-depth_threshold) < zxi) //source is behind\n"\
+        "               if(ctrlxi>0) bleed = true; \n" \
+        "           else \n"\
+        "               if(ctrlx>0) bleed = true; \n" \
         "           if (bleed) {\n"\
-        "               bleeded_out = bleeded_out+texelFetch(bleed_color_tex, ivec2(gl_FragCoord.xy)+OFFSET, 0)*weight21[i+10];\n"\
+        "               bleeded_out = bleeded_out+texelFetch(bleed_color_tex, ivec2(gl_FragCoord.xy)+OFFSET, 0)*weight81[i+40];\n"\
         "           } else {\n"\
-        "               bleeded_out = bleeded_out+texelFetch(bleed_color_tex, ivec2(gl_FragCoord.xy), 0)*weight21[i+10];\n"\
+        "               bleeded_out = bleeded_out+texelFetch(bleed_color_tex, ivec2(gl_FragCoord.xy), 0)*weight81[i+40];\n"\
         "           } \n"\
         "       } else {\n"\
-        "           bleeded_out = bleeded_out+texelFetch(bleed_color_tex, ivec2(gl_FragCoord.xy), 0)*weight21[i+10];\n"\
+        "           bleeded_out = bleeded_out+texelFetch(bleed_color_tex, ivec2(gl_FragCoord.xy), 0)*weight81[i+40];\n"\
         "       }\n"\
         "//TODO i dont really understand whats going on here"\
         "       control_out = control_in;\n"\
-        "       if (bleed) control_out.b = 1.0;\n"\
+        "      if (bleed) control_out.b = 1.0;\n"\
         "   }\n"\
         "}\n" \
 
