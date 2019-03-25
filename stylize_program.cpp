@@ -16,7 +16,13 @@ StylizeProgram::StylizeProgram() {
         "uniform sampler2D blurred_tex;\n"
         "uniform sampler2D bleeded_tex;\n"
         "uniform sampler2D surface_tex;\n"
+        "uniform float density_amount;\n"
         "layout(location=0) out vec4 final_out;\n"
+
+        "vec4 pow_col(vec4 base, float exp){ \n"
+        "   return vec4(pow(base.r,exp),pow(base.g, exp),pow(base.b, exp),1);\n"
+        "}\n"
+
 		"void main() {\n"
 		"	vec4 controlColor = texelFetch(control_tex, ivec2(gl_FragCoord.xy), 0);\n"
         "   vec4 colorColor = texelFetch(color_tex, ivec2(gl_FragCoord.xy), 0);\n"
@@ -27,9 +33,15 @@ StylizeProgram::StylizeProgram() {
         "   vec4 blurDif = blurredColor-colorColor;\n"
         "   float maxVal = max(blurDif.r, max(blurDif.g, max(blurDif.b, blurDif.a)));\n"
         "   float exp = 1+controlColor.b*maxVal; \n"
-        "   vec4 edgeDarkening = vec4(pow(colorBleed.r, exp), pow(colorBleed.g, exp), pow(colorBleed.b, exp), colorBleed.a); \n"
-        "   final_out = colorBleed; \n"
-        //"   final_out = controlColor*0.2+colorColor*0.2+blurredColor*0.2+bleededColor*0.3+surfaceColor*0.2;\n"
+        "   vec4 edgeDarkening =pow_col(colorBleed, exp); \n"
+        "   final_out = edgeDarkening; \n"
+        //TODO not sure what this is supposed to be?
+        "   vec4 saturation = edgeDarkening;\n"
+        "   float Piv = 1.0-texelFetch(surface_tex, ivec2(gl_FragCoord.xy),0).r;\n"
+        "   float ctrl = texelFetch(control_tex, ivec2(gl_FragCoord.xy),0).g;"
+        "   vec4 granulated = saturation*(saturation-Piv)+(1.0-saturation)*pow_col(saturation, 1.0+(ctrl*density_amount*Piv)); \n"
+        "   final_out = granulated; \n"
+
 		"}\n"
 	);
 	glUseProgram(program);
@@ -39,6 +51,8 @@ StylizeProgram::StylizeProgram() {
     glUniform1i(glGetUniformLocation(program, "blurred_tex"), 2);
     glUniform1i(glGetUniformLocation(program, "bleeded_tex"), 3);
     glUniform1i(glGetUniformLocation(program, "surface_tex"), 4);
+
+    density_amount = glGetUniformLocation(program, "density_amount");
 
 	glUseProgram(0);
 

@@ -17,7 +17,7 @@ SurfaceProgram::SurfaceProgram() {
 		"void main() {\n"
 		"	vec4 paperColor = texelFetch(paper_tex, ivec2(gl_FragCoord.xy), 0);\n"
         "   vec4 normalColor = texelFetch(normal_map_tex, ivec2(gl_FragCoord.xy), 0);"
-        "   surface_out = vec4(0.5*paperColor.r+0.5*normalColor.r, 0.5*paperColor.g+0.5*normalColor.g,0.5*paperColor.b+0.5*normalColor.b, 1.0);"
+        "   surface_out = vec4(paperColor.r, 0, normalColor.b, 1.0);"
 		"}\n"
 	);
 	glUseProgram(program);

@@ -111,11 +111,11 @@ Load< GLuint > marble_tex(LoadTagDefault, [](){
 });
 
 Load< GLuint > paper_tex(LoadTagDefault, [](){
-	return new GLuint(load_texture(data_path("textures/marble.png")));
+	return new GLuint(load_texture(data_path("textures/paper.png")));
 });
 
 Load< GLuint > normal_map_tex(LoadTagDefault, [](){
-	return new GLuint(load_texture(data_path("textures/wood.png")));
+	return new GLuint(load_texture(data_path("textures/paper.png")));
 });
 
 Load< GLuint > white_tex(LoadTagDefault, [](){
@@ -156,7 +156,8 @@ float tremor_amount = 0.5f;
 float dA = 0.12f;
 float cangiante_variable = 0.1f;
 float dilution_variable = 0.72f;
-int show = BILATERAL_BLUR;
+float density_amount = 1.0f;
+int show = FINAL;
 float depth_threshold = 0.f;
 int blur_amount = 5;
 
@@ -254,8 +255,9 @@ Load< Scene > scene(LoadTagDefault, [](){
     static TWEAK_HINT(dA, "float 0.0001 1.0");
     static TWEAK_HINT(cangiante_variable, "float 0.0 1.0");
     static TWEAK_HINT(dilution_variable, "float 0.0 1.0");
+    static TWEAK_HINT(density_amount, "float 0.0 1.0");
     static TWEAK_HINT(show, "int 0 7");
-    static TWEAK_HINT(depth_threshold, "float 0.0 1.0");
+    static TWEAK_HINT(depth_threshold, "float 0.0 0.001");
     static TWEAK_HINT(blur_amount, "int 0 10");
 	return ret;
 });
@@ -487,10 +489,11 @@ void GameMode::draw_mrt_blur(GLuint color_tex, GLuint control_tex,
     get_weights();
     glUniform1fv(mrt_blurH_program->weights, 20, weights);
     glDrawArrays(GL_TRIANGLES, 0, 3);
-
-  //  blurred_tex = blur_temp_tex;
-  //  bleeded_tex = bleed_temp_tex;
-  //  control_tex = control_temp_tex;
+/*
+    blurred_tex = blur_temp_tex;
+    bleeded_tex = bleed_temp_tex;
+    control_tex = control_temp_tex;
+    */
     static GLuint fb2 = 0;
     if(fb2==0) glGenFramebuffers(1, &fb2);
     glBindFramebuffer(GL_FRAMEBUFFER, fb2);
@@ -615,6 +618,7 @@ void GameMode::draw_stylization(GLuint color_tex, GLuint control_tex,
     glBindTexture(GL_TEXTURE_2D, surface_tex);
 
 	glUseProgram(stylize_program->program);
+    glUniform1f(stylize_program->density_amount, density_amount);
     glDrawArrays(GL_TRIANGLES, 0, 3);
 
     glActiveTexture(GL_TEXTURE0);
@@ -643,6 +647,7 @@ void GameMode::draw(glm::uvec2 const &drawable_size) {
             textures.surface_tex, textures.blurred_tex, textures.bleeded_tex,
             &textures.final_tex);
 
+
 	//Copy scene from color buffer to screen, performing post-processing effects:
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glActiveTexture(GL_TEXTURE0);
@@ -669,4 +674,5 @@ void GameMode::draw(glm::uvec2 const &drawable_size) {
 	glUseProgram(0);
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, 0);
+    GL_ERRORS();
 }

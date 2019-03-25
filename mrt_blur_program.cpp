@@ -35,29 +35,34 @@
         "   bleeded_out = vec4(0.0, 0.0, 0.0, 1.0);\n"\
         "   vec4 control_in = texelFetch(control_tex, ivec2(gl_FragCoord.xy), 0);\n"\
         "   float ctrlx=control_in.b;\n"\
-		"   for(int i = -40; i<=40; i++){\n"\
+        "   float zx = texelFetch(depth_tex, ivec2(gl_FragCoord.xy), 0).r;\n"\
+        "   zx = 1.0/zx; //because of weird z value weirdness with 1/z things\n"\
+        "   bool blurred = false;\n" \
+		"   for(int i = -20; i<=20; i++){\n"\
         "       bool bleed;\n"\
         "       float ctrlxi = texelFetch(control_tex, ivec2(gl_FragCoord.xy)+OFFSET, 0).b;\n"\
         "       if (ctrlx>0 || ctrlxi>0) {\n"\
         "           bleed = false;\n"\
-        "           float zx = texelFetch(depth_tex, ivec2(gl_FragCoord.xy), 0).z;\n"\
-        "           float zxi = texelFetch(depth_tex, ivec2(gl_FragCoord.xy)+OFFSET, 0).z;\n"\
-        "           if ((zx-depth_threshold) < zxi) //source is behind\n"\
+        "           float zxi = texelFetch(depth_tex, ivec2(gl_FragCoord.xy)+OFFSET, 0).r;\n"\
+        "           zxi = 1.0/zxi; \n"\
+        "           if ((zx-depth_threshold) < zxi){ //source is behind\n"\
         "               if(ctrlxi>0) bleed = true; \n" \
-        "           else \n"\
+        "           }else{ \n"\
         "               if(ctrlx>0) bleed = true; \n" \
+        "           }\n" \
         "           if (bleed) {\n"\
-        "               bleeded_out = bleeded_out+texelFetch(bleed_color_tex, ivec2(gl_FragCoord.xy)+OFFSET, 0)*weight81[i+40];\n"\
+        "               bleeded_out = bleeded_out+texelFetch(bleed_color_tex, ivec2(gl_FragCoord.xy)+OFFSET, 0)*weight41[i+20];\n"\
+                "       blurred = true;\n" \
         "           } else {\n"\
-        "               bleeded_out = bleeded_out+texelFetch(bleed_color_tex, ivec2(gl_FragCoord.xy), 0)*weight81[i+40];\n"\
+        "               bleeded_out = bleeded_out+texelFetch(bleed_color_tex, ivec2(gl_FragCoord.xy), 0)*weight41[i+20];\n"\
         "           } \n"\
         "       } else {\n"\
-        "           bleeded_out = bleeded_out+texelFetch(bleed_color_tex, ivec2(gl_FragCoord.xy), 0)*weight81[i+40];\n"\
+        "           bleeded_out = bleeded_out+texelFetch(bleed_color_tex, ivec2(gl_FragCoord.xy), 0)*weight41[i+20];\n"\
         "       }\n"\
-        "//TODO i dont really understand whats going on here"\
-        "       control_out = control_in;\n"\
-        "      if (bleed) control_out.b = 1.0;\n"\
         "   }\n"\
+        "       control_out = control_in;\n"\
+        "      //if (blurred) control_out.r = 1.0;\n"\
+        "      // else bleeded_out.r = 0; \n"\
         "}\n" \
 
 
@@ -76,9 +81,9 @@ MRTBlurHProgram::MRTBlurHProgram() {
     blur_amount = glGetUniformLocation(program, "blur_amount");
     weights = glGetUniformLocation(program, "weights");
     glUniform1i(glGetUniformLocation(program, "blur_color_tex"), 0);
-    glUniform1i(glGetUniformLocation(program, "bleed_color_tex"), 0);
-    glUniform1i(glGetUniformLocation(program, "control_tex"), 1);
-    glUniform1i(glGetUniformLocation(program, "depth_tex"), 2);
+    glUniform1i(glGetUniformLocation(program, "bleed_color_tex"), 1);
+    glUniform1i(glGetUniformLocation(program, "control_tex"), 2);
+    glUniform1i(glGetUniformLocation(program, "depth_tex"), 3);
 
 	glUseProgram(0);
 
