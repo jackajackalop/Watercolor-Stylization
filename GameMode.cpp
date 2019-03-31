@@ -111,11 +111,11 @@ Load< GLuint > marble_tex(LoadTagDefault, [](){
 });
 
 Load< GLuint > paper_tex(LoadTagDefault, [](){
-	return new GLuint(load_texture(data_path("textures/paper.png")));
+	return new GLuint(load_texture(data_path("textures/height.png")));
 });
 
 Load< GLuint > normal_map_tex(LoadTagDefault, [](){
-	return new GLuint(load_texture(data_path("textures/paper.png")));
+	return new GLuint(load_texture(data_path("textures/height.png")));
 });
 
 Load< GLuint > white_tex(LoadTagDefault, [](){
@@ -255,7 +255,7 @@ Load< Scene > scene(LoadTagDefault, [](){
     static TWEAK_HINT(dA, "float 0.0001 1.0");
     static TWEAK_HINT(cangiante_variable, "float 0.0 1.0");
     static TWEAK_HINT(dilution_variable, "float 0.0 1.0");
-    static TWEAK_HINT(density_amount, "float 0.0 1.0");
+    static TWEAK_HINT(density_amount, "float 0.0 10.0");
     static TWEAK_HINT(show, "int 0 7");
     static TWEAK_HINT(depth_threshold, "float 0.0 0.001");
     static TWEAK_HINT(blur_amount, "int 0 10");
@@ -602,7 +602,7 @@ void GameMode::draw_stylization(GLuint color_tex, GLuint control_tex,
 
 	//set up basic OpenGL state:
 	glEnable(GL_DEPTH_TEST);
-	glEnable(GL_BLEND);
+	glDisable(GL_BLEND);
 	glBlendEquation(GL_FUNC_ADD);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
