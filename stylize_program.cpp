@@ -24,11 +24,16 @@ StylizeProgram::StylizeProgram() {
         "}\n"
 
 		"void main() {\n"
-		"	vec4 controlColor = texelFetch(control_tex, ivec2(gl_FragCoord.xy), 0);\n"
-        "   vec4 colorColor = texelFetch(color_tex, ivec2(gl_FragCoord.xy), 0);\n"
-        "   vec4 blurredColor = texelFetch(blurred_tex, ivec2(gl_FragCoord.xy), 0);\n"
-        "   vec4 bleededColor = texelFetch(bleeded_tex, ivec2(gl_FragCoord.xy), 0);\n" //TODO this is supposed to be upsampled??
         "   vec4 surfaceColor = texelFetch(surface_tex, ivec2(gl_FragCoord.xy), 0);\n"
+        //paper distortion..?
+        "   float ctrl = texelFetch(control_tex, ivec2(gl_FragCoord.xy),0).r;"
+        "   vec2 shift_amt = ctrl*surfaceColor.gb; \n"
+        "   ivec2 shiftedCoord = ivec2(gl_FragCoord.xy+shift_amt);\n"
+
+		"	vec4 controlColor = texelFetch(control_tex, shiftedCoord, 0);\n"
+        "   vec4 colorColor = texelFetch(color_tex, shiftedCoord, 0);\n"
+        "   vec4 blurredColor = texelFetch(blurred_tex, shiftedCoord, 0);\n"
+        "   vec4 bleededColor = texelFetch(bleeded_tex, shiftedCoord, 0);\n" //TODO this is supposed to be upsampled??
         "   vec4 colorBleed = controlColor.b*(bleededColor-colorColor)+colorColor;\n"
         "   colorBleed = colorColor;\n"
         "   vec4 blurDif = (blurredColor-colorColor);\n"
@@ -36,14 +41,13 @@ StylizeProgram::StylizeProgram() {
         "   float exp = 1.0+controlColor.b*maxVal*5.0; \n"
         "   vec4 edgeDarkening =pow_col(colorBleed, exp); \n"
         "   final_out = edgeDarkening; \n"
-        //TODO not sure what this is supposed to be?
         "   vec4 saturation = edgeDarkening;\n"
-        "   vec4 surface = texelFetch(surface_tex, ivec2(gl_FragCoord.xy),0);\n"
+        "   vec4 surface = texelFetch(surface_tex, shiftedCoord,0);\n"
         "   float paperHeight = surface.r;\n"
         "   vec2 offset = surface.gb*2.0-1.0;\n"
         "   float tint = surface.a;\n"
         "   float Piv = 0.5*(1.0-paperHeight);\n"
-        "   float ctrl = texelFetch(control_tex, ivec2(gl_FragCoord.xy),0).g;"
+        "   ctrl = texelFetch(control_tex, shiftedCoord,0).g;"
         "   vec4 granulated = saturation*(saturation-ctrl*density_amount*Piv)+(1.0-saturation)*pow_col(saturation, 1.0+(ctrl*density_amount*Piv)); \n"
         //"   final_out = vec4(tint,tint, tint, 1.0); \n"
         "   final_out = granulated*tint;\n"
