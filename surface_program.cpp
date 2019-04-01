@@ -12,13 +12,11 @@ SurfaceProgram::SurfaceProgram() {
 		,
 		"#version 330\n"
 		"uniform sampler2D paper_tex;\n"
-        "uniform sampler2D normal_map_tex;\n"
         "layout(location=0) out vec4 surface_out;\n"
 		"void main() {\n"
         "   vec2 texCoord = gl_FragCoord.xy/textureSize(paper_tex, 0); \n"
 		"	vec4 paperColor = texture(paper_tex, texCoord);\n"
         "   float paperHeight = paperColor.r; \n"
-        "   vec4 normalColor = texture(normal_map_tex, texCoord);"
         "   vec3 xdirection = normalize(vec3(1.0 ,0.0, dFdx(paperHeight)));\n"
         "   vec3 ydirection = normalize(vec3(0.0, 1.0, dFdy(paperHeight)));\n"
         "   vec3 n = normalize(cross(xdirection, ydirection));\n"
@@ -31,7 +29,6 @@ SurfaceProgram::SurfaceProgram() {
 	glUseProgram(program);
 
     glUniform1i(glGetUniformLocation(program, "paper_tex"), 0);
-    glUniform1i(glGetUniformLocation(program, "normal_map_tex"), 1);
 
 	glUseProgram(0);
 

@@ -111,11 +111,7 @@ Load< GLuint > marble_tex(LoadTagDefault, [](){
 });
 
 Load< GLuint > paper_tex(LoadTagDefault, [](){
-	return new GLuint(load_texture(data_path("textures/height.png")));
-});
-
-Load< GLuint > normal_map_tex(LoadTagDefault, [](){
-	return new GLuint(load_texture(data_path("textures/height.png")));
+	return new GLuint(load_texture(data_path("textures/paper.png")));
 });
 
 Load< GLuint > white_tex(LoadTagDefault, [](){
@@ -534,8 +530,7 @@ void GameMode::draw_mrt_blur(GLuint color_tex, GLuint control_tex,
 
 }
 
-void GameMode::draw_surface(GLuint paper_tex, GLuint normal_map_tex,
-                            GLuint* surface_tex_){
+void GameMode::draw_surface(GLuint paper_tex, GLuint* surface_tex_){
     surfaced = true;
     assert(surface_tex_);
     auto &surface_tex = *surface_tex_;
@@ -566,8 +561,6 @@ void GameMode::draw_surface(GLuint paper_tex, GLuint normal_map_tex,
 
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, paper_tex);
-    glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_2D, normal_map_tex);
 
 	glUseProgram(surface_program->program);
     glDrawArrays(GL_TRIANGLES, 0, 3);
@@ -645,7 +638,7 @@ void GameMode::draw(glm::uvec2 const &drawable_size) {
                 &textures.control_temp_tex, &textures.blurred_tex,
                 &textures.bleeded_tex);
     if(!surfaced)
-        draw_surface(*paper_tex, *normal_map_tex, &textures.surface_tex);
+        draw_surface(*paper_tex, &textures.surface_tex);
     draw_stylization(textures.color_tex, textures.control_tex,
             textures.surface_tex, textures.blurred_tex, textures.bleeded_tex,
             &textures.final_tex);
