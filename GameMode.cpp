@@ -133,22 +133,6 @@ Load< GLuint > white_tex(LoadTagDefault, [](){
 	return new GLuint(tex);
 });
 
-Load< GLuint > surface_tex(LoadTagDefault, [](){
-
-	    //glm::uvec2 size = glm::uvec2(textures.size.x, textures.size.y);
-	    glm::uvec2 size = glm::uvec2(1280, 800);
-        GLuint tex= 0;
-        glGenTextures(1, &tex);
-        glBindTexture(GL_TEXTURE_2D, tex);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, size.x,
-                        size.y, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-		glBindTexture(GL_TEXTURE_2D, 0);
-        return new GLuint(tex);
-});
 Scene::Transform *camera_parent_transform = nullptr;
 Scene::Camera *camera = nullptr;
 //Scene::Transform *spot_parent_transform = nullptr;
@@ -173,9 +157,10 @@ float dA = 0.12f;
 float cangiante_variable = 0.1f;
 float dilution_variable = 0.72f;
 float density_amount = 1.0f;
-int show = SURFACE;
+int show = FINAL;
 float depth_threshold = 0.f;
 int blur_amount = 5;
+bool surfaced = false;
 
 //Gaussian weights
 float w1[1] = {1.f};
@@ -279,8 +264,6 @@ Load< Scene > scene(LoadTagDefault, [](){
 });
 
 GameMode::GameMode() {
-    GLuint surface = *surface_tex;
-    draw_surface(*paper_tex, *normal_map_tex, &surface);
 }
 
 GameMode::~GameMode() {
@@ -324,6 +307,7 @@ struct Textures {
 	GLuint depth_tex = 0;
     GLuint blurred_tex = 0;
     GLuint bleeded_tex = 0;
+    GLuint surface_tex = 0;
     GLuint final_tex = 0;
     GLuint blur_temp_tex = 0;
     GLuint bleed_temp_tex = 0;
@@ -354,6 +338,7 @@ struct Textures {
             alloc_tex(&bleed_temp_tex, GL_RGBA32F, GL_RGBA);
             alloc_tex(&control_temp_tex, GL_RGBA32F, GL_RGBA);
             alloc_tex(&bleeded_tex, GL_RGBA32F, GL_RGBA);
+            alloc_tex(&surface_tex, GL_RGBA8, GL_RGBA);
             alloc_tex(&final_tex, GL_RGBA8, GL_RGBA);
 			GL_ERRORS();
 		}
@@ -550,7 +535,8 @@ void GameMode::draw_mrt_blur(GLuint color_tex, GLuint control_tex,
 }
 
 void GameMode::draw_surface(GLuint paper_tex, GLuint normal_map_tex,
-                            GLuint *surface_tex_){
+                            GLuint* surface_tex_){
+    surfaced = true;
     assert(surface_tex_);
     auto &surface_tex = *surface_tex_;
 
@@ -585,7 +571,6 @@ void GameMode::draw_surface(GLuint paper_tex, GLuint normal_map_tex,
 
 	glUseProgram(surface_program->program);
     glDrawArrays(GL_TRIANGLES, 0, 3);
-	GL_ERRORS();
 
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, 0);
@@ -659,8 +644,10 @@ void GameMode::draw(glm::uvec2 const &drawable_size) {
                 &textures.blur_temp_tex, &textures.bleed_temp_tex,
                 &textures.control_temp_tex, &textures.blurred_tex,
                 &textures.bleeded_tex);
+    if(!surfaced)
+        draw_surface(*paper_tex, *normal_map_tex, &textures.surface_tex);
     draw_stylization(textures.color_tex, textures.control_tex,
-            *surface_tex, textures.blurred_tex, textures.bleeded_tex,
+            textures.surface_tex, textures.blurred_tex, textures.bleeded_tex,
             &textures.final_tex);
 
 
@@ -676,7 +663,7 @@ void GameMode::draw(glm::uvec2 const &drawable_size) {
     else if(show == BILATERAL_BLUR)
         glBindTexture(GL_TEXTURE_2D, textures.bleeded_tex);
     else if(show == SURFACE)
-        glBindTexture(GL_TEXTURE_2D, *surface_tex);
+        glBindTexture(GL_TEXTURE_2D, textures.surface_tex);
     else
         glBindTexture(GL_TEXTURE_2D, textures.color_tex);
 
@@ -692,3 +679,4 @@ void GameMode::draw(glm::uvec2 const &drawable_size) {
 	glBindTexture(GL_TEXTURE_2D, 0);
     GL_ERRORS();
 }
+
