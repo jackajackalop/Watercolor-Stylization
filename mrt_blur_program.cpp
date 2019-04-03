@@ -60,9 +60,8 @@
         "           bleeded_out = bleeded_out+texelFetch(bleed_color_tex, ivec2(gl_FragCoord.xy), 0)*weight41[i+20];\n"\
         "       }\n"\
         "   }\n"\
-        "       control_out = control_in;\n"\
-        "      //if (blurred) control_out.r = 1.0;\n"\
-        "      // else bleeded_out.r = 0; \n"\
+        "   control_out = control_in;\n"\
+        "   if(blurred) control_out.b = 1.0; \n"\
         "}\n" \
 
 

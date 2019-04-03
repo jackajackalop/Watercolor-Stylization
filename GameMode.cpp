@@ -102,12 +102,8 @@ GLuint load_texture(std::string const &filename) {
 	return tex;
 }
 
-Load< GLuint > wood_tex(LoadTagDefault, [](){
+Load< GLuint > grid_tex(LoadTagDefault, [](){
 	return new GLuint(load_texture(data_path("textures/grid.png")));
-});
-
-Load< GLuint > marble_tex(LoadTagDefault, [](){
-	return new GLuint(load_texture(data_path("textures/marble.png")));
 });
 
 Load< GLuint > paper_tex(LoadTagDefault, [](){
@@ -194,9 +190,7 @@ Load< Scene > scene(LoadTagDefault, [](){
 
 		obj->programs[Scene::Object::ProgramTypeDefault] = scene_program_info;
 		if (t->name == "Platform") {
-			obj->programs[Scene::Object::ProgramTypeDefault].textures[0] = *wood_tex;
-		} else if (t->name == "Pedestal") {
-			obj->programs[Scene::Object::ProgramTypeDefault].textures[0] = *marble_tex;
+			obj->programs[Scene::Object::ProgramTypeDefault].textures[0] = *grid_tex;
 		} else {
 			obj->programs[Scene::Object::ProgramTypeDefault].textures[0] = *white_tex;
 		}
@@ -313,7 +307,8 @@ struct Textures {
 
 		if (size != new_size) {
 			size = new_size;
-
+            surfaced = false;
+            //std::cout<<"resizing textures to "<<size.x<<"x"<<size.y<<std::endl;
             auto alloc_tex = [this](GLuint *tex, GLint internalformat, GLint format){
                 if (*tex == 0) glGenTextures(1, tex);
 	    		glBindTexture(GL_TEXTURE_2D, *tex);
@@ -379,7 +374,6 @@ void GameMode::draw_scene(GLuint* color_tex_, GLuint* control_tex_,
 	//Draw scene to off-screen framebuffer:
 	glBindFramebuffer(GL_FRAMEBUFFER, fb);
 	glViewport(0,0, textures.size.x, textures.size.y);
-
 	camera->aspect = textures.size.x / float(textures.size.y);
 
     GLfloat black[4] = {0.0f, 0.0f, 0.0f, 0.0f};
@@ -486,11 +480,7 @@ void GameMode::draw_mrt_blur(GLuint color_tex, GLuint control_tex,
     get_weights();
     glUniform1fv(mrt_blurH_program->weights, 20, weights);
     glDrawArrays(GL_TRIANGLES, 0, 3);
-/*
-    blurred_tex = blur_temp_tex;
-    bleeded_tex = bleed_temp_tex;
-    control_tex = control_temp_tex;
-    */
+
     static GLuint fb2 = 0;
     if(fb2==0) glGenFramebuffers(1, &fb2);
     glBindFramebuffer(GL_FRAMEBUFFER, fb2);
@@ -498,9 +488,11 @@ void GameMode::draw_mrt_blur(GLuint color_tex, GLuint control_tex,
                             blurred_tex, 0);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D,
                             bleeded_tex, 0);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D,
+                            control_tex, 0);
     {
-        GLenum bufs[2] = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1};
-        glDrawBuffers(2, bufs);
+        GLenum bufs[3] = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2};
+        glDrawBuffers(3, bufs);
     }
     check_fb();
 
@@ -555,7 +547,7 @@ void GameMode::draw_surface(GLuint paper_tex, GLuint* surface_tex_){
 
 	//set up basic OpenGL state:
 	glEnable(GL_DEPTH_TEST);
-	glEnable(GL_BLEND);
+	glDisable(GL_BLEND);
 	glBlendEquation(GL_FUNC_ADD);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 

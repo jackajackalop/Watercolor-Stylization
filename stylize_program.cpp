@@ -33,12 +33,11 @@ StylizeProgram::StylizeProgram() {
 		"	vec4 controlColor = texelFetch(control_tex, shiftedCoord, 0);\n"
         "   vec4 colorColor = texelFetch(color_tex, shiftedCoord, 0);\n"
         "   vec4 blurredColor = texelFetch(blurred_tex, shiftedCoord, 0);\n"
-        "   vec4 bleededColor = texelFetch(bleeded_tex, shiftedCoord, 0);\n" //TODO this is supposed to be upsampled??
+        "   vec4 bleededColor = texelFetch(bleeded_tex, shiftedCoord, 0);\n"
         "   vec4 colorBleed = controlColor.b*(bleededColor-colorColor)+colorColor;\n"
-        "   colorBleed = colorColor;\n"
         "   vec4 blurDif = (blurredColor-colorColor);\n"
         "   float maxVal = max(0.0,max(blurDif.r, max(blurDif.g, blurDif.b)));\n"
-        "   float exp = 1.0+controlColor.b*maxVal*5.0; \n"
+        "   float exp = 1.0+(1.0-controlColor.b)*maxVal*5.0; \n"
         "   vec4 edgeDarkening =pow_col(colorBleed, exp); \n"
         "   final_out = edgeDarkening; \n"
         "   vec4 saturation = edgeDarkening;\n"
@@ -51,7 +50,7 @@ StylizeProgram::StylizeProgram() {
         "   vec4 granulated = saturation*(saturation-ctrl*density_amount*Piv)+(1.0-saturation)*pow_col(saturation, 1.0+(ctrl*density_amount*Piv)); \n"
         //"   final_out = vec4(tint,tint, tint, 1.0); \n"
         "   final_out = granulated*tint;\n"
-
+        //"   final_out = controlColor;\n"
 		"}\n"
 	);
 	glUseProgram(program);
