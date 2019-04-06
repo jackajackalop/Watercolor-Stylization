@@ -102,10 +102,12 @@ GLuint load_texture(std::string const &filename) {
 	return tex;
 }
 
+//texture for the platform in the test scene
 Load< GLuint > grid_tex(LoadTagDefault, [](){
 	return new GLuint(load_texture(data_path("textures/grid.png")));
 });
 
+//watercolor paper texture
 Load< GLuint > paper_tex(LoadTagDefault, [](){
 	return new GLuint(load_texture(data_path("textures/paper.png")));
 });
@@ -130,6 +132,7 @@ Scene::Camera *camera = nullptr;
 //Scene::Transform *spot_parent_transform = nullptr;
 //Scene::Lamp *spot = nullptr;
 
+//Options for what to show for debugging using http-tweak
 enum Stages{
     VERTEX_COLORS=0,
     CONTROL_COLORS=1,
@@ -141,6 +144,7 @@ enum Stages{
     FINAL=7
 };
 
+//Art-directable parameters
 float elapsed_time = 0.0f;
 float speed = 13.f;
 float frequency = 0.02f;
@@ -149,10 +153,12 @@ float dA = 0.12f;
 float cangiante_variable = 0.1f;
 float dilution_variable = 0.72f;
 float density_amount = 1.0f;
-int show = FINAL;
 float depth_threshold = 0.f;
 int blur_amount = 5;
-bool surfaced = false;
+
+//Other globals
+bool surfaced = false; //so surface shader is only called once and when resizing
+int show = FINAL;
 
 //Gaussian weights
 float w1[1] = {1.f};
@@ -165,12 +171,11 @@ float w7[7] = {0.136498f, 0.129188f, 0.109523f, 0.083173f, 0.056577f, 0.034474f,
 float w8[8] = {0.105915f, 0.102673f, 0.093531f, 0.080066f, 0.064408f, 0.048689f, 0.034587f, 0.023089f};
 float w9[9] = {0.102934f, 0.099783f, 0.090898f, 0.077812f, 0.062595f, 0.047318f, 0.033613f, 0.022439f, 0.014076f};
 float w10[10] = {0.101253f, 0.098154f, 0.089414f, 0.076542f, 0.061573f, 0.046546f, 0.033065f, 0.022072f, 0.013846f, 0.008162f};
-
 float* weight_arrays[] = {w1, w2, w3, w4, w5, w6, w7, w8, w9, w10};
 
+//Initial scene loading setup stuff
 Load< Scene > scene(LoadTagDefault, [](){
 	Scene *ret = new Scene;
-
 	//pre-build some program info (material) blocks to assign to each object:
 	Scene::Object::ProgramInfo scene_program_info;
 	scene_program_info.program = scene_program->program;
@@ -239,6 +244,7 @@ Load< Scene > scene(LoadTagDefault, [](){
 	}
 	if (!spot) throw std::runtime_error("No 'Spot' spotlight in scene.");
 */
+    //setting up http-tweak for debugging use
     TWEAK_CONFIG(8888, data_path("../http-tweak/tweak-ui.html"));
     static TWEAK(speed);
     static TWEAK(frequency);
@@ -274,7 +280,6 @@ bool GameMode::handle_event(SDL_Event const &evt, glm::uvec2 const &window_size)
 			//spot_spin += 5.0f * evt.motion.xrel / float(window_size.x);
 			return true;
 		}
-
 	}
 
 	return false;
@@ -299,7 +304,7 @@ struct Textures {
     GLuint bleeded_tex = 0;
     GLuint surface_tex = 0;
     GLuint final_tex = 0;
-    GLuint blur_temp_tex = 0;
+    GLuint blur_temp_tex = 0; //temp textures are for two-pass blur
     GLuint bleed_temp_tex = 0;
     GLuint control_temp_tex = 0;
 	void allocate(glm::uvec2 const &new_size) {
@@ -308,7 +313,6 @@ struct Textures {
 		if (size != new_size) {
 			size = new_size;
             surfaced = false;
-            //std::cout<<"resizing textures to "<<size.x<<"x"<<size.y<<std::endl;
             auto alloc_tex = [this](GLuint *tex, GLint internalformat, GLint format){
                 if (*tex == 0) glGenTextures(1, tex);
 	    		glBindTexture(GL_TEXTURE_2D, *tex);
@@ -337,6 +341,7 @@ struct Textures {
 	}
 } textures;
 
+//renders the color texture, control texture, and depth buffer.
 void GameMode::draw_scene(GLuint* color_tex_, GLuint* control_tex_,
                         GLuint* depth_tex_){
     assert(color_tex_);
@@ -346,6 +351,10 @@ void GameMode::draw_scene(GLuint* color_tex_, GLuint* control_tex_,
     auto &control_tex = *control_tex_;
     auto &depth_tex = *depth_tex_;
 
+    /* backing up the variables in case they need to be briefly turned off,
+     * like when viewing only color texture or control texture, so speed should
+     * be 0 in order to avoid seeing the handtremors.
+     */
     float dA0 = dA;
     float cangiante_variable0 = cangiante_variable;
     float dilution_variable0 = dilution_variable;
@@ -357,6 +366,7 @@ void GameMode::draw_scene(GLuint* color_tex_, GLuint* control_tex_,
         if(show<HAND_TREMORS)
             speed = 0.f;
     }
+    //Textures to draw into
     static GLuint fb = 0;
     if(fb==0) glGenFramebuffers(1, &fb);
     glBindFramebuffer(GL_FRAMEBUFFER, fb);
@@ -389,16 +399,15 @@ void GameMode::draw_scene(GLuint* color_tex_, GLuint* control_tex_,
 
 	glUseProgram(scene_program->program);
 
-	//don't use distant directional light at all (color == 0):
 	glUniform3fv(scene_program->sun_color_vec3, 1, glm::value_ptr(glm::vec3(0.5f, 0.5f, 0.5f)));
 	glUniform3fv(scene_program->sun_direction_vec3, 1, glm::value_ptr(glm::normalize(glm::vec3(0.5f, 0.1f, 1.f))));
-	//use hemisphere light for subtle ambient light:
 	glUniform3fv(scene_program->sky_color_vec3, 1, glm::value_ptr(glm::vec3(0.f, 0.f, 0.f)));
 	glUniform3fv(scene_program->sky_direction_vec3, 1, glm::value_ptr(glm::vec3(0.0f, 0.0f, 1.0f)));
     glUniform1f(scene_program->time, elapsed_time);
     glUniform1f(scene_program->speed, speed);
     glUniform1f(scene_program->frequency, frequency);
     glUniform1f(scene_program->tremor_amount, tremor_amount);
+    //view coords go from -1 to 1, so thats 2.0/# of pixels
     glUniform2fv(scene_program->clip_units_per_pixel, 1,
         glm::value_ptr(glm::vec2(2.f/textures.size.x, 2.f/textures.size.y)));
     glUniform3fv(scene_program->viewPos, 1,
@@ -407,12 +416,14 @@ void GameMode::draw_scene(GLuint* color_tex_, GLuint* control_tex_,
     glUniform1f(scene_program->cangiante_variable, cangiante_variable);
     glUniform1f(scene_program->dilution_variable, dilution_variable);
     scene->draw(camera);
+    //restoring things turned off for debug view
     dA = dA0;
     cangiante_variable = cangiante_variable0;
     dilution_variable = dilution_variable0;
     speed = speed0;
 }
 
+//copies weights into the array that'll be passed as an uniform
 void GameMode::get_weights(){
     if(blur_amount>0 && blur_amount<=10){
         auto to_copy = weight_arrays[blur_amount-1];
@@ -422,6 +433,8 @@ void GameMode::get_weights(){
     }
 }
 
+//shader that does a horizontal pass and a vertical pass of gaussian blur and
+//bilateral blur
 void GameMode::draw_mrt_blur(GLuint color_tex, GLuint control_tex,
         GLuint depth_tex, GLuint *blur_temp_tex_, GLuint *bleed_temp_tex_,
         GLuint *control_temp_tex_, GLuint* blurred_tex_, GLuint* bleeded_tex_){
@@ -436,6 +449,9 @@ void GameMode::draw_mrt_blur(GLuint color_tex, GLuint control_tex,
     auto &blurred_tex = *blurred_tex_;
     auto &bleeded_tex = *bleeded_tex_;
 
+    /*since shaders can't write into the textures they read from, the
+     * horizontal pass draws into the temp versions of the buffers. The
+     * vertical pass then reads the temp versions and draws into the non-temp*/
     static GLuint fb = 0;
     if(fb==0) glGenFramebuffers(1, &fb);
     glBindFramebuffer(GL_FRAMEBUFFER, fb);
@@ -445,7 +461,6 @@ void GameMode::draw_mrt_blur(GLuint color_tex, GLuint control_tex,
                             bleed_temp_tex, 0);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D,
                             control_temp_tex, 0);
-
     {
         GLenum bufs[3] = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2};
         glDrawBuffers(3, bufs);
@@ -465,6 +480,7 @@ void GameMode::draw_mrt_blur(GLuint color_tex, GLuint control_tex,
 	glEnable(GL_DEPTH_TEST);
 	glDisable(GL_BLEND);
 
+    //read from unblurred color_tex for both gaussian and bilateral blur
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, color_tex);
     glActiveTexture(GL_TEXTURE1);
@@ -496,6 +512,7 @@ void GameMode::draw_mrt_blur(GLuint color_tex, GLuint control_tex,
     }
     check_fb();
 
+    //read from horizontally blurred blur and bleed textures to do vertical pass
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, blur_temp_tex);
     glActiveTexture(GL_TEXTURE1);
@@ -522,6 +539,9 @@ void GameMode::draw_mrt_blur(GLuint color_tex, GLuint control_tex,
 
 }
 
+/* draws the surface shader, which contains a heightmap, normal map,
+ * and rendered paper
+ */
 void GameMode::draw_surface(GLuint paper_tex, GLuint* surface_tex_){
     surfaced = true;
     assert(surface_tex_);
@@ -532,7 +552,6 @@ void GameMode::draw_surface(GLuint paper_tex, GLuint* surface_tex_){
     glBindFramebuffer(GL_FRAMEBUFFER, fb);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D,
                             surface_tex, 0);
-
     GLenum bufs[1] = {GL_COLOR_ATTACHMENT0};
     glDrawBuffers(1, bufs);
     check_fb();
@@ -559,10 +578,9 @@ void GameMode::draw_surface(GLuint paper_tex, GLuint* surface_tex_){
 
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, 0);
-    glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_2D, 0);
 }
 
+//combines paper effects, edge darkening, and bleeding into final texture
 void GameMode::draw_stylization(GLuint color_tex, GLuint control_tex,
                             GLuint surface_tex, GLuint blurred_tex,
                             GLuint bleeded_tex, GLuint* final_tex_){
@@ -618,9 +636,9 @@ void GameMode::draw_stylization(GLuint color_tex, GLuint control_tex,
     glBindTexture(GL_TEXTURE_2D, 0);
     glActiveTexture(GL_TEXTURE4);
     glBindTexture(GL_TEXTURE_2D, 0);
-
 }
 
+//main draw function that calls the functions that call the other shaders
 void GameMode::draw(glm::uvec2 const &drawable_size) {
 	textures.allocate(drawable_size);
 
@@ -630,16 +648,16 @@ void GameMode::draw(glm::uvec2 const &drawable_size) {
                 &textures.control_temp_tex, &textures.blurred_tex,
                 &textures.bleeded_tex);
     if(!surfaced)
+        //only needs to be updated when resized since it doesn't change
         draw_surface(*paper_tex, &textures.surface_tex);
     draw_stylization(textures.color_tex, textures.control_tex,
             textures.surface_tex, textures.blurred_tex, textures.bleeded_tex,
             &textures.final_tex);
 
-
 	//Copy scene from color buffer to screen, performing post-processing effects:
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glActiveTexture(GL_TEXTURE0);
-    if(show == FINAL)
+    if(show == FINAL) //show different parts of pipeline for debug use
     	glBindTexture(GL_TEXTURE_2D, textures.final_tex);
     else if(show == CONTROL_COLORS)
         glBindTexture(GL_TEXTURE_2D, textures.control_tex);

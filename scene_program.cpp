@@ -36,9 +36,12 @@ SceneProgram::SceneProgram() {
 		"	color = Color;\n"
         "   controlColor = ControlColor;\n"
 		"	texCoord = TexCoord;\n"
+        //calculate vertex positions after some hand tremor
+        //which occurs along the normals of the vertex and also is dependent on
+        //distance from viewer so that it is visible for farther things
         "   vec2 pixel_size = clip_units_per_pixel * gl_Position.w;\n"
         "   vec2 voffset = sin(time*speed+(gl_Position.x+gl_Position.y+gl_Position.z)*frequency)*tremor_amount*pixel_size;\n"
-        "   float a = 0.8f;\n"
+        "   float a = 0.8f;\n" //this may or may not need changing
         "   vec3 viewDir = normalize(viewPos-position);\n"
         "   gl_Position = gl_Position+vec4(voffset,0, 0)*(1.0f-a*dot(viewDir,geoNormal));\n"
 		"}\n"
@@ -58,7 +61,6 @@ SceneProgram::SceneProgram() {
 		"in vec4 color;\n"
         "in vec4 controlColor;\n"
 		"in vec2 texCoord;\n"
-		//"out vec4 fragColor;\n"
         "layout(location=0) out vec4 color_out;\n"
         "layout(location=1) out vec4 control_out;\n"
 		"void main() {\n"
@@ -82,7 +84,7 @@ SceneProgram::SceneProgram() {
         "   float DA = (dot(sun_direction, n)+(dA-1.f))/dA;\n"
         "   DA = clamp(DA, 0.0f, 1.0f);\n"
         "   vec4 cangiante = color_out+DA*cangiante_variable;\n"
-        "   vec4 paper = vec4(1.f, 1.f, 1.f, 1.f);\n" //TODO maybe change later?
+        "   vec4 paper = vec4(1.f, 1.f, 1.f, 1.f);\n" //white paper
         "   color_out = dilution_variable*DA*(paper-cangiante)+cangiante;\n"
         "   float ctrl = control_out.a;\n"
         "   if(ctrl<0.5){\n"

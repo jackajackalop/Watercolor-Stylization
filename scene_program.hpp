@@ -1,7 +1,10 @@
 #include "GL.hpp"
 #include "Load.hpp"
 
-//SceneProgram draws a surface lit by two lights (a distant directional and a hemispherical light) where the surface color is drawn from texture unit 0:
+//SceneProgram draw the scene lit by the lights specified in GameMode.cpp,
+//as well as the control masks, and a depth buffer. The scene lit by lights is
+//in color_tex, and it is also changed by hand tremors and some dilution/
+//pigment effects
 struct SceneProgram {
 	//opengl program object:
 	GLuint program = 0;

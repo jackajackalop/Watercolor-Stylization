@@ -19,24 +19,33 @@ StylizeProgram::StylizeProgram() {
         "uniform float density_amount;\n"
         "layout(location=0) out vec4 final_out;\n"
 
+        //calculates a vec4 that has each of its rgb components exponentiated
         "vec4 pow_col(vec4 base, float exp){ \n"
         "   return vec4(pow(base.r,exp),pow(base.g, exp),pow(base.b, exp),1);\n"
         "}\n"
 
+        //calculates the max value of the rgb components of a vec4
+        "float max_col(vec4 col){ \n"
+        "   return max(0.0, max(col.r, max(col.g, col.b))); \n"
+        "} \n"
+
 		"void main() {\n"
         "   vec4 surfaceColor = texelFetch(surface_tex, ivec2(gl_FragCoord.xy), 0);\n"
-        //paper distortion..?
-        "   float ctrl = texelFetch(control_tex, ivec2(gl_FragCoord.xy),0).r;"
+        //paper distortion
+        "   float ctrl = texelFetch(control_tex, ivec2(gl_FragCoord.xy),0).r;\n"
         "   vec2 shift_amt = ctrl*surfaceColor.gb; \n"
-        "   ivec2 shiftedCoord = ivec2(gl_FragCoord.xy+shift_amt);\n"
 
+        //just getting all the values from each texture
+        "   ivec2 shiftedCoord = ivec2(gl_FragCoord.xy+shift_amt);\n"
 		"	vec4 controlColor = texelFetch(control_tex, shiftedCoord, 0);\n"
         "   vec4 colorColor = texelFetch(color_tex, shiftedCoord, 0);\n"
         "   vec4 blurredColor = texelFetch(blurred_tex, shiftedCoord, 0);\n"
         "   vec4 bleededColor = texelFetch(bleeded_tex, shiftedCoord, 0);\n"
         "   vec4 colorBleed = controlColor.b*(bleededColor-colorColor)+colorColor;\n"
+
+        //edge darkening
         "   vec4 blurDif = (blurredColor-colorColor);\n"
-        "   float maxVal = max(0.0,max(blurDif.r, max(blurDif.g, blurDif.b)));\n"
+        "   float maxVal = max_col(blurDif);\n"
         "   float exp = 1.0+(1.0-controlColor.b)*maxVal*5.0; \n"
         "   vec4 edgeDarkening =pow_col(colorBleed, exp); \n"
         "   final_out = edgeDarkening; \n"
