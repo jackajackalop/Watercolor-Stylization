@@ -41,6 +41,8 @@ StylizeProgram::StylizeProgram() {
         "   vec4 colorColor = texelFetch(color_tex, shiftedCoord, 0);\n"
         "   vec4 blurredColor = texelFetch(blurred_tex, shiftedCoord, 0);\n"
         "   vec4 bleededColor = texelFetch(bleeded_tex, shiftedCoord, 0);\n"
+
+        //color bleeding
         "   vec4 colorBleed = controlColor.b*(bleededColor-colorColor)+colorColor;\n"
 
         //edge darkening
@@ -48,7 +50,8 @@ StylizeProgram::StylizeProgram() {
         "   float maxVal = max_col(blurDif);\n"
         "   float exp = 1.0+(1.0-controlColor.b)*maxVal*5.0; \n"
         "   vec4 edgeDarkening =pow_col(colorBleed, exp); \n"
-        "   final_out = edgeDarkening; \n"
+
+        //paper granulation
         "   vec4 saturation = edgeDarkening;\n"
         "   vec4 surface = texelFetch(surface_tex, shiftedCoord,0);\n"
         "   float paperHeight = surface.r;\n"
@@ -57,9 +60,7 @@ StylizeProgram::StylizeProgram() {
         "   float Piv = 0.5*(1.0-paperHeight);\n"
         "   ctrl = texelFetch(control_tex, shiftedCoord,0).g;"
         "   vec4 granulated = saturation*(saturation-ctrl*density_amount*Piv)+(1.0-saturation)*pow_col(saturation, 1.0+(ctrl*density_amount*Piv)); \n"
-        //"   final_out = vec4(tint,tint, tint, 1.0); \n"
         "   final_out = granulated*tint;\n"
-        //"   final_out = controlColor;\n"
 		"}\n"
 	);
 	glUseProgram(program);

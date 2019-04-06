@@ -40,6 +40,5 @@ struct GameMode : public Mode {
                         GLuint bleeded_tex, GLuint* final_tex);
 
 	float camera_spin = 0.0f;
-	float spot_spin = 0.0f;
     float weights[20];
 };

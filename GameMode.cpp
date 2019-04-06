@@ -129,8 +129,6 @@ Load< GLuint > white_tex(LoadTagDefault, [](){
 
 Scene::Transform *camera_parent_transform = nullptr;
 Scene::Camera *camera = nullptr;
-//Scene::Transform *spot_parent_transform = nullptr;
-//Scene::Lamp *spot = nullptr;
 
 //Options for what to show for debugging using http-tweak
 enum Stages{
@@ -216,16 +214,10 @@ Load< Scene > scene(LoadTagDefault, [](){
 			if (camera_parent_transform) throw std::runtime_error("Multiple 'CameraParent' transforms in scene.");
 			camera_parent_transform = t;
 		}
-/*		if (t->name == "SpotParent") {
-			if (spot_parent_transform) throw std::runtime_error("Multiple 'SpotParent' transforms in scene.");
-			spot_parent_transform = t;
-		}
-*/
 	}
 	if (!camera_parent_transform) throw std::runtime_error("No 'CameraParent' transform in scene.");
-//	if (!spot_parent_transform) throw std::runtime_error("No 'SpotParent' transform in scene.");
 
-	//look up the camera:
+    //look up the camera:
 	for (Scene::Camera *c = ret->first_camera; c != nullptr; c = c->alloc_next) {
 		if (c->transform->name == "Camera") {
 			if (camera) throw std::runtime_error("Multiple 'Camera' objects in scene.");
@@ -233,17 +225,7 @@ Load< Scene > scene(LoadTagDefault, [](){
 		}
 	}
 	if (!camera) throw std::runtime_error("No 'Camera' camera in scene.");
-/*
-	//look up the spotlight:
-	for (Scene::Lamp *l = ret->first_lamp; l != nullptr; l = l->alloc_next) {
-		if (l->transform->name == "Spot") {
-			if (spot) throw std::runtime_error("Multiple 'Spot' objects in scene.");
-			if (l->type != Scene::Lamp::Spot) throw std::runtime_error("Lamp 'Spot' is not a spotlight.");
-			spot = l;
-		}
-	}
-	if (!spot) throw std::runtime_error("No 'Spot' spotlight in scene.");
-*/
+
     //setting up http-tweak for debugging use
     TWEAK_CONFIG(8888, data_path("../http-tweak/tweak-ui.html"));
     static TWEAK(speed);
@@ -276,10 +258,6 @@ bool GameMode::handle_event(SDL_Event const &evt, glm::uvec2 const &window_size)
 			camera_spin += 5.0f * evt.motion.xrel / float(window_size.x);
 			return true;
 		}
-		if (evt.motion.state & SDL_BUTTON(SDL_BUTTON_RIGHT)) {
-			//spot_spin += 5.0f * evt.motion.xrel / float(window_size.x);
-			return true;
-		}
 	}
 
 	return false;
@@ -287,7 +265,6 @@ bool GameMode::handle_event(SDL_Event const &evt, glm::uvec2 const &window_size)
 
 void GameMode::update(float elapsed) {
 	camera_parent_transform->rotation = glm::angleAxis(camera_spin, glm::vec3(0.0f, 0.0f, 1.0f));
-//	spot_parent_transform->rotation = glm::angleAxis(spot_spin, glm::vec3(0.0f, 0.0f, 1.0f));
     elapsed_time+=elapsed;
     TWEAK_SYNC();
 }
@@ -647,8 +624,9 @@ void GameMode::draw(glm::uvec2 const &drawable_size) {
                 &textures.blur_temp_tex, &textures.bleed_temp_tex,
                 &textures.control_temp_tex, &textures.blurred_tex,
                 &textures.bleeded_tex);
+
+    //only needs to be updated when resized since it doesn't change
     if(!surfaced)
-        //only needs to be updated when resized since it doesn't change
         draw_surface(*paper_tex, &textures.surface_tex);
     draw_stylization(textures.color_tex, textures.control_tex,
             textures.surface_tex, textures.blurred_tex, textures.bleeded_tex,

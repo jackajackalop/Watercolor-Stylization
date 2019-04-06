@@ -23,6 +23,7 @@ SurfaceProgram::SurfaceProgram() {
         "   vec3 l = normalize(vec3(1.0, 1.0, 1.0));"
         "   float nl = (dot(n,l)+1.0)/2.0;\n"
         "   nl = mix(0.65, 1.1, nl); \n"
+        //0.65 and 1.1 are just arbitrarily picked to weight the paper color
         "   surface_out = vec4(paperHeight, 0.5*n.xy+0.5, nl);"
 		"}\n"
 	);

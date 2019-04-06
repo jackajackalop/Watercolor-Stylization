@@ -36,7 +36,7 @@
         "   float ctrlx=control_in.b;\n"\
         "   float zx = texelFetch(depth_tex, ivec2(gl_FragCoord.xy), 0).r;\n"\
         "   zx = 1.0/zx; //because of weird z value weirdness with 1/z things\n"\
-        "   bool blurred = false; \\to decide if control_tex needs updating\n" \
+        "   bool blurred = false; //to decide if control_tex needs updating\n" \
 		"   for(int i = -20; i<=20; i++){\n"\
         "       bool bleed;\n"\
         "       float ctrlxi = texelFetch(control_tex, ivec2(gl_FragCoord.xy)+OFFSET, 0).b;\n"\

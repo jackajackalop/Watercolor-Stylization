@@ -1,7 +1,9 @@
 #include "GL.hpp"
 #include "Load.hpp"
 
-//StylizeProgram draws a surface lit by two lights (a distant directional and a hemispherical light) where the surface color is drawn from texture unit 0:
+//StylizeProgram combines the effects of paper distortion, paper granulation,
+//edge darkening, and color bleeding into final_tex using color_tex,
+//control_tex, blurred_tex, bleeded_tex, and surface_tex
 struct StylizeProgram {
 	//opengl program object:
 	GLuint program = 0;
