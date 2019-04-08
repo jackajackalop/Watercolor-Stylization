@@ -27,16 +27,16 @@
 #include <random>
 
 #ifndef TWEAK_ENABLE
-#error "poop"
+#error "http-tweak not enabled"
 #endif
-Load< MeshBuffer > meshes(LoadTagDefault, [](){
-	return new MeshBuffer(data_path("test.pgct"));
-});
 
+std::string file = "opossum";
+Load< MeshBuffer > meshes(LoadTagDefault, [](){
+	return new MeshBuffer(data_path(file+".pgct"));
+});
 Load< GLuint > meshes_for_scene_program(LoadTagDefault, [](){
 	return new GLuint(meshes->make_vao_for_program(scene_program->program));
 });
-
 Load< GLuint > meshes_for_depth_program(LoadTagDefault, [](){
 	return new GLuint(meshes->make_vao_for_program(depth_program->program));
 });
@@ -148,8 +148,8 @@ float speed = 13.f;
 float frequency = 0.02f;
 float tremor_amount = 0.5f;
 float dA = 0.12f;
-float cangiante_variable = 0.1f;
-float dilution_variable = 0.72f;
+float cangiante_variable = 0.05f;
+float dilution_variable = 0.95f;
 float density_amount = 1.0f;
 float depth_threshold = 0.f;
 int blur_amount = 5;
@@ -188,7 +188,7 @@ Load< Scene > scene(LoadTagDefault, [](){
 	depth_program_info.mvp_mat4  = depth_program->object_to_clip_mat4;
 
 	//load transform hierarchy:
-	ret->load(data_path("test.scene"), [&](Scene &s, Scene::Transform *t, std::string const &m){
+	ret->load(data_path(file+".scene"), [&](Scene &s, Scene::Transform *t, std::string const &m){
 		Scene::Object *obj = s.new_object(t);
 
 		obj->programs[Scene::Object::ProgramTypeDefault] = scene_program_info;
@@ -363,9 +363,9 @@ void GameMode::draw_scene(GLuint* color_tex_, GLuint* control_tex_,
 	glViewport(0,0, textures.size.x, textures.size.y);
 	camera->aspect = textures.size.x / float(textures.size.y);
 
-    GLfloat black[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-    glClearBufferfv(GL_COLOR, 0, black);
-    glClearBufferfv(GL_COLOR, 1, black);
+    GLfloat white[4] = {1.0f, 1.0f, 1.0f, 1.0f};
+    glClearBufferfv(GL_COLOR, 0, white);
+    glClearBufferfv(GL_COLOR, 1, white);
 	glClear(GL_DEPTH_BUFFER_BIT);
 
 	//set up basic OpenGL state:
@@ -377,8 +377,8 @@ void GameMode::draw_scene(GLuint* color_tex_, GLuint* control_tex_,
 	glUseProgram(scene_program->program);
 
 	glUniform3fv(scene_program->sun_color_vec3, 1, glm::value_ptr(glm::vec3(0.5f, 0.5f, 0.5f)));
-	glUniform3fv(scene_program->sun_direction_vec3, 1, glm::value_ptr(glm::normalize(glm::vec3(0.5f, 0.1f, 1.f))));
-	glUniform3fv(scene_program->sky_color_vec3, 1, glm::value_ptr(glm::vec3(0.f, 0.f, 0.f)));
+	glUniform3fv(scene_program->sun_direction_vec3, 1, glm::value_ptr(glm::normalize(glm::vec3(0.5f, 0.3f, 1.f))));
+	glUniform3fv(scene_program->sky_color_vec3, 1, glm::value_ptr(glm::vec3(0.2f, 0.2f, 0.2f)));
 	glUniform3fv(scene_program->sky_direction_vec3, 1, glm::value_ptr(glm::vec3(0.0f, 0.0f, 1.0f)));
     glUniform1f(scene_program->time, elapsed_time);
     glUniform1f(scene_program->speed, speed);

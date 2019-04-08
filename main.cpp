@@ -34,11 +34,14 @@ int main(int argc, char **argv) {
 	try {
 #endif
 	struct {
-		//TODO: this is where you set the title and size of your game window
-		std::string title = "TODO: Game Title";
+		std::string title = "Watercolor Stylization";
 		glm::uvec2 size = glm::uvec2(1280, 800);
 	} config;
 
+    /*std::string file = "test";
+    if(argc==2){
+        std::string file = argv[1];
+    }*/
 	/*
 	//----- start connection to server ----
 	if (argc != 3) {
