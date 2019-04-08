@@ -17,6 +17,7 @@
 #include "surface_program.hpp"
 #include "stylize_program.hpp"
 #include "http-tweak/tweak.hpp"
+#include "parameters.hpp"
 
 #include <glm/gtc/type_ptr.hpp>
 
@@ -142,21 +143,8 @@ enum Stages{
     FINAL=7
 };
 
-//Art-directable parameters
-float elapsed_time = 0.0f;
-float speed = 13.f;
-float frequency = 0.02f;
-float tremor_amount = 0.5f;
-float dA = 0.12f;
-float cangiante_variable = 0.05f;
-float dilution_variable = 0.95f;
-float density_amount = 1.0f;
-float depth_threshold = 0.f;
-int blur_amount = 5;
-
 //Other globals
 bool surfaced = false; //so surface shader is only called once and when resizing
-int show = FINAL;
 
 //Gaussian weights
 float w1[1] = {1.f};
@@ -227,6 +215,7 @@ Load< Scene > scene(LoadTagDefault, [](){
 	if (!camera) throw std::runtime_error("No 'Camera' camera in scene.");
 
     //setting up http-tweak for debugging use
+    using namespace Parameters;
     TWEAK_CONFIG(8888, data_path("../http-tweak/tweak-ui.html"));
     static TWEAK(speed);
     static TWEAK(frequency);
@@ -265,7 +254,7 @@ bool GameMode::handle_event(SDL_Event const &evt, glm::uvec2 const &window_size)
 
 void GameMode::update(float elapsed) {
 	camera_parent_transform->rotation = glm::angleAxis(camera_spin, glm::vec3(0.0f, 0.0f, 1.0f));
-    elapsed_time+=elapsed;
+    Parameters::elapsed_time+=elapsed;
     TWEAK_SYNC();
 }
 
@@ -332,16 +321,16 @@ void GameMode::draw_scene(GLuint* color_tex_, GLuint* control_tex_,
      * like when viewing only color texture or control texture, so speed should
      * be 0 in order to avoid seeing the handtremors.
      */
-    float dA0 = dA;
-    float cangiante_variable0 = cangiante_variable;
-    float dilution_variable0 = dilution_variable;
-    float speed0 = speed;
-    if(show < PIGMENT){
-        dA = 0.f;
-        cangiante_variable = 0.f;
-        dilution_variable = 0.f;
-        if(show<HAND_TREMORS)
-            speed = 0.f;
+    float dA0 =  Parameters::dA;
+    float cangiante_variable0 = Parameters::cangiante_variable;
+    float dilution_variable0 =  Parameters::dilution_variable;
+    float speed0 =  Parameters::speed;
+    if(Parameters::show < PIGMENT){
+        Parameters::dA = 0.f;
+        Parameters::cangiante_variable = 0.f;
+        Parameters::dilution_variable = 0.f;
+        if(Parameters::show<HAND_TREMORS)
+            Parameters::speed = 0.f;
     }
     //Textures to draw into
     static GLuint fb = 0;
@@ -380,31 +369,31 @@ void GameMode::draw_scene(GLuint* color_tex_, GLuint* control_tex_,
 	glUniform3fv(scene_program->sun_direction_vec3, 1, glm::value_ptr(glm::normalize(glm::vec3(0.5f, 0.3f, 1.f))));
 	glUniform3fv(scene_program->sky_color_vec3, 1, glm::value_ptr(glm::vec3(0.2f, 0.2f, 0.2f)));
 	glUniform3fv(scene_program->sky_direction_vec3, 1, glm::value_ptr(glm::vec3(0.0f, 0.0f, 1.0f)));
-    glUniform1f(scene_program->time, elapsed_time);
-    glUniform1f(scene_program->speed, speed);
-    glUniform1f(scene_program->frequency, frequency);
-    glUniform1f(scene_program->tremor_amount, tremor_amount);
+    glUniform1f(scene_program->time, Parameters::elapsed_time);
+    glUniform1f(scene_program->speed,  Parameters::speed);
+    glUniform1f(scene_program->frequency,  Parameters::frequency);
+    glUniform1f(scene_program->tremor_amount,  Parameters::tremor_amount);
     //view coords go from -1 to 1, so thats 2.0/# of pixels
     glUniform2fv(scene_program->clip_units_per_pixel, 1,
         glm::value_ptr(glm::vec2(2.f/textures.size.x, 2.f/textures.size.y)));
     glUniform3fv(scene_program->viewPos, 1,
             glm::value_ptr(camera->transform->make_local_to_world()));
-    glUniform1f(scene_program->dA, dA);
-    glUniform1f(scene_program->cangiante_variable, cangiante_variable);
-    glUniform1f(scene_program->dilution_variable, dilution_variable);
+    glUniform1f(scene_program->dA, Parameters::dA);
+    glUniform1f(scene_program->cangiante_variable, Parameters::cangiante_variable);
+    glUniform1f(scene_program->dilution_variable,Parameters::dilution_variable);
     scene->draw(camera);
     //restoring things turned off for debug view
-    dA = dA0;
-    cangiante_variable = cangiante_variable0;
-    dilution_variable = dilution_variable0;
-    speed = speed0;
+    Parameters::dA = dA0;
+    Parameters::cangiante_variable = cangiante_variable0;
+    Parameters::dilution_variable = dilution_variable0;
+    Parameters::speed = speed0;
 }
 
 //copies weights into the array that'll be passed as an uniform
 void GameMode::get_weights(){
-    if(blur_amount>0 && blur_amount<=10){
-        auto to_copy = weight_arrays[blur_amount-1];
-        for(int i = 0; i<blur_amount; i++){
+    if(Parameters::blur_amount>0 && Parameters::blur_amount<=10){
+        auto to_copy = weight_arrays[Parameters::blur_amount-1];
+        for(int i = 0; i<Parameters::blur_amount; i++){
             weights[i] = to_copy[i];
         }
     }
@@ -468,8 +457,8 @@ void GameMode::draw_mrt_blur(GLuint color_tex, GLuint control_tex,
     glBindTexture(GL_TEXTURE_2D, depth_tex);
 
     glUseProgram(mrt_blurH_program->program);
-    glUniform1f(mrt_blurH_program->depth_threshold, depth_threshold);
-    glUniform1i(mrt_blurH_program->blur_amount, blur_amount);
+    glUniform1f(mrt_blurH_program->depth_threshold, Parameters::depth_threshold);
+    glUniform1i(mrt_blurH_program->blur_amount, Parameters::blur_amount);
     get_weights();
     glUniform1fv(mrt_blurH_program->weights, 20, weights);
     glDrawArrays(GL_TRIANGLES, 0, 3);
@@ -500,8 +489,8 @@ void GameMode::draw_mrt_blur(GLuint color_tex, GLuint control_tex,
     glBindTexture(GL_TEXTURE_2D, depth_tex);
 
     glUseProgram(mrt_blurV_program->program);
-    glUniform1f(mrt_blurV_program->depth_threshold, depth_threshold);
-    glUniform1i(mrt_blurV_program->blur_amount, blur_amount);
+    glUniform1f(mrt_blurV_program->depth_threshold, Parameters::depth_threshold);
+    glUniform1i(mrt_blurV_program->blur_amount,Parameters:: blur_amount);
     glUniform1fv(mrt_blurV_program->weights, 20, weights);
     glDrawArrays(GL_TRIANGLES, 0, 3);
 
@@ -600,7 +589,7 @@ void GameMode::draw_stylization(GLuint color_tex, GLuint control_tex,
     glBindTexture(GL_TEXTURE_2D, surface_tex);
 
 	glUseProgram(stylize_program->program);
-    glUniform1f(stylize_program->density_amount, density_amount);
+    glUniform1f(stylize_program->density_amount, Parameters::density_amount);
     glDrawArrays(GL_TRIANGLES, 0, 3);
 
     glActiveTexture(GL_TEXTURE0);
@@ -635,15 +624,15 @@ void GameMode::draw(glm::uvec2 const &drawable_size) {
 	//Copy scene from color buffer to screen, performing post-processing effects:
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glActiveTexture(GL_TEXTURE0);
-    if(show == FINAL) //show different parts of pipeline for debug use
+    if(Parameters::show == FINAL) //show different parts of pipeline for debug use
     	glBindTexture(GL_TEXTURE_2D, textures.final_tex);
-    else if(show == CONTROL_COLORS)
+    else if(Parameters::show == CONTROL_COLORS)
         glBindTexture(GL_TEXTURE_2D, textures.control_tex);
-    else if(show == GAUSSIAN_BLUR)
+    else if(Parameters::show == GAUSSIAN_BLUR)
         glBindTexture(GL_TEXTURE_2D, textures.blurred_tex);
-    else if(show == BILATERAL_BLUR)
+    else if(Parameters::show == BILATERAL_BLUR)
         glBindTexture(GL_TEXTURE_2D, textures.bleeded_tex);
-    else if(show == SURFACE)
+    else if(Parameters::show == SURFACE)
         glBindTexture(GL_TEXTURE_2D, textures.surface_tex);
     else
         glBindTexture(GL_TEXTURE_2D, textures.color_tex);

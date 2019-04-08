@@ -29,6 +29,7 @@
 #include <memory>
 #include <algorithm>
 
+extern std::string file;
 int main(int argc, char **argv) {
 #ifdef _WIN32
 	try {
@@ -38,10 +39,9 @@ int main(int argc, char **argv) {
 		glm::uvec2 size = glm::uvec2(1280, 800);
 	} config;
 
-    /*std::string file = "test";
     if(argc==2){
-        std::string file = argv[1];
-    }*/
+        file = argv[1];
+    }
 	/*
 	//----- start connection to server ----
 	if (argc != 3) {

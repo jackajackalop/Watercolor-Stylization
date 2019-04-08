@@ -65,6 +65,7 @@ COMMON_NAMES =
 	;
 
 CLIENT_NAMES =
+    parameters
 	load_save_png
 	main
 	data_path
