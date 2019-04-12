@@ -28,6 +28,9 @@
 #include <fstream>
 #include <memory>
 #include <algorithm>
+#include <string>
+
+#include "parameters.hpp"
 
 extern std::string file;
 int main(int argc, char **argv) {
@@ -39,8 +42,44 @@ int main(int argc, char **argv) {
 		glm::uvec2 size = glm::uvec2(1280, 800);
 	} config;
 
-    if(argc==2){
+    if(argc>=2 && argv[1][0]!='-'){
         file = argv[1];
+    }
+
+    //parsing input parameters
+    //-t elapsed time
+    //-s speed of hand tremors
+    //-f frequency of hand tremors
+    //-a dilute area variable
+    //-c cangiante variable
+    //-u dilution_variable
+    //-d density amount
+    //-p depth threshold
+    //-b blur amount
+    //-l show
+    int start = (argc%2==0 ? 2 : 1);
+    for(int i = start; i<argc-1; i+=2){
+        if(strcmp(argv[i], "-t")==0){
+            Parameters::elapsed_time = atof(argv[i+1]);
+        }else if(strcmp(argv[i], "-s")==0){
+            Parameters::speed = atof(argv[i+1]);
+        }else if(strcmp(argv[i], "-f")==0){
+            Parameters::frequency = atof(argv[i+1]);
+        }else if(strcmp(argv[i], "-a") == 0){
+            Parameters::dA = atof(argv[i+1]);
+        }else if(strcmp(argv[i],"-c") == 0){
+            Parameters::cangiante_variable = atof(argv[i+1]);
+        }else if(strcmp(argv[i],"-u") == 0){
+            Parameters::dilution_variable = atof(argv[i+1]);
+        }else if(strcmp(argv[i],"-d") == 0){
+            Parameters::density_amount = atof(argv[i+1]);
+        }else if(strcmp(argv[i],"-p") == 0){
+            Parameters::depth_threshold = atof(argv[i+1]);
+        }else if(strcmp(argv[i],"-b") == 0){
+            Parameters::blur_amount = atof(argv[i+1]);
+        }else if(strcmp(argv[i],"-l") == 0){
+            Parameters::show = atoi(argv[i+1]);
+        }
     }
 	/*
 	//----- start connection to server ----
