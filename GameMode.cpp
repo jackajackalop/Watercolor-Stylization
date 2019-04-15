@@ -31,7 +31,7 @@
 #error "http-tweak not enabled"
 #endif
 
-std::string file = "opossum";
+std::string file = "test";
 Load< MeshBuffer > meshes(LoadTagDefault, [](){
 	return new MeshBuffer(data_path(file+".pgct"));
 });
@@ -223,9 +223,10 @@ Load< Scene > scene(LoadTagDefault, [](){
     static TWEAK_HINT(dA, "float 0.0001 1.0");
     static TWEAK_HINT(cangiante_variable, "float 0.0 1.0");
     static TWEAK_HINT(dilution_variable, "float 0.0 1.0");
-    static TWEAK_HINT(density_amount, "float 0.0 10.0");
+    static TWEAK_HINT(density_amount, "float 0.0 1.0");
     static TWEAK_HINT(show, "int 0 7");
     static TWEAK_HINT(depth_threshold, "float 0.0 0.001");
+    static TWEAK_HINT(wobble, "float 0.0, 5.0");
     static TWEAK_HINT(blur_amount, "int 0 10");
 	return ret;
 });
@@ -353,8 +354,9 @@ void GameMode::draw_scene(GLuint* color_tex_, GLuint* control_tex_,
 	camera->aspect = textures.size.x / float(textures.size.y);
 
     GLfloat white[4] = {1.0f, 1.0f, 1.0f, 1.0f};
+    GLfloat black[4] = {0.0f, 0.0f, 0.0f, 0.0f};
     glClearBufferfv(GL_COLOR, 0, white);
-    glClearBufferfv(GL_COLOR, 1, white);
+    glClearBufferfv(GL_COLOR, 1, black);
 	glClear(GL_DEPTH_BUFFER_BIT);
 
 	//set up basic OpenGL state:
@@ -590,6 +592,7 @@ void GameMode::draw_stylization(GLuint color_tex, GLuint control_tex,
 
 	glUseProgram(stylize_program->program);
     glUniform1f(stylize_program->density_amount, Parameters::density_amount);
+    glUniform1f(stylize_program->wobble, Parameters::wobble);
     glDrawArrays(GL_TRIANGLES, 0, 3);
 
     glActiveTexture(GL_TEXTURE0);

@@ -55,6 +55,7 @@ int main(int argc, char **argv) {
     //-u dilution_variable
     //-d density amount
     //-p depth threshold
+    //-w wobble
     //-b blur amount
     //-l show
     int start = (argc%2==0 ? 2 : 1);
@@ -79,6 +80,8 @@ int main(int argc, char **argv) {
             Parameters::blur_amount = atof(argv[i+1]);
         }else if(strcmp(argv[i],"-l") == 0){
             Parameters::show = atoi(argv[i+1]);
+        }else if(strcmp(argv[i],"-w") == 0){
+            Parameters::wobble = atof(argv[i+1]);
         }
     }
 	/*
