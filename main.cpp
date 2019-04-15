@@ -82,6 +82,8 @@ int main(int argc, char **argv) {
             Parameters::show = atoi(argv[i+1]);
         }else if(strcmp(argv[i],"-w") == 0){
             Parameters::wobble = atof(argv[i+1]);
+        }else if(strcmp(argv[i], "-n") == 0){
+            Parameters::filenum = argv[i+1];
         }
     }
 	/*

@@ -26,6 +26,7 @@
 #include <map>
 #include <cstddef>
 #include <random>
+#include <png.h>
 
 #ifndef TWEAK_ENABLE
 #error "http-tweak not enabled"
@@ -145,6 +146,8 @@ enum Stages{
 
 //Other globals
 bool surfaced = false; //so surface shader is only called once and when resizing
+int width, height;
+GLuint screen_tex;
 
 //Gaussian weights
 float w1[1] = {1.f};
@@ -243,6 +246,13 @@ bool GameMode::handle_event(SDL_Event const &evt, glm::uvec2 const &window_size)
 		return false;
 	}
 
+    if(evt.type == SDL_KEYDOWN){
+        if(evt.key.keysym.scancode == SDL_SCANCODE_SPACE){
+            std::string filename = "renders/"+file+Parameters::filenum+".png";
+            write_png(filename.c_str());
+        }
+    }
+
 	if (evt.type == SDL_MOUSEMOTION) {
 		if (evt.motion.state & SDL_BUTTON(SDL_BUTTON_LEFT)) {
 			camera_spin += 5.0f * evt.motion.xrel / float(window_size.x);
@@ -251,6 +261,40 @@ bool GameMode::handle_event(SDL_Event const &evt, glm::uvec2 const &window_size)
 	}
 
 	return false;
+}
+
+void GameMode::write_png(const char *filename){
+    FILE *output = fopen(filename, "wb");
+    if(!output) return;
+    png_structp png = png_create_write_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
+    if (!png) return;
+    png_infop info = png_create_info_struct(png);
+    if(!info) return;
+    if(setjmp(png_jmpbuf(png))) return;
+    png_init_io(png, output);
+    png_set_IHDR(png, info, width, height, 8,
+            PNG_COLOR_TYPE_RGBA, PNG_INTERLACE_NONE,
+            PNG_COMPRESSION_TYPE_DEFAULT, PNG_FILTER_TYPE_DEFAULT);
+    png_write_info(png, info);
+
+    glBindTexture(GL_TEXTURE_2D, screen_tex);
+    GLuint *pixels = new GLuint[width*height*4];
+    glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_INT, pixels);
+    png_bytep row = (png_bytep)malloc(sizeof(png_byte)*width*4);
+    for(int y = height-1; y >= 0; y--) {
+        for(int x = 0; x<width; x++){
+            row[x*4] = pixels[(x+y*width)*4];
+            row[x*4+1] = pixels[(x+y*width)*4+1];
+            row[x*4+2] = pixels[(x+y*width)*4+2];
+            row[x*4+3] = 255;
+        }
+        png_write_row(png, row);
+    }
+    png_write_end(png, NULL);
+
+    free(row);
+    fclose(output);
+    std::cout<<"done writing out to "<<filename<<std::endl;
 }
 
 void GameMode::update(float elapsed) {
@@ -279,6 +323,8 @@ struct Textures {
 
 		if (size != new_size) {
 			size = new_size;
+            width = size.x;
+            height = size.y;
             surfaced = false;
             auto alloc_tex = [this](GLuint *tex, GLint internalformat, GLint format){
                 if (*tex == 0) glGenTextures(1, tex);
@@ -302,6 +348,7 @@ struct Textures {
             alloc_tex(&bleeded_tex, GL_RGBA32F, GL_RGBA);
             alloc_tex(&surface_tex, GL_RGBA8, GL_RGBA);
             alloc_tex(&final_tex, GL_RGBA8, GL_RGBA);
+            screen_tex = final_tex;
 			GL_ERRORS();
 		}
 

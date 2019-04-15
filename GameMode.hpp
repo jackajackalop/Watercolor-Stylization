@@ -10,8 +10,11 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/quaternion.hpp>
 #include <chrono>
+#include <stdio.h>
+
 
 #include <vector>
+#include <string>
 
 // The 'GameMode' mode is the main gameplay mode:
 
@@ -38,6 +41,7 @@ struct GameMode : public Mode {
     void draw_stylization(GLuint control_tex, GLuint color_tex,
                         GLuint surface_tex, GLuint blurred_tex,
                         GLuint bleeded_tex, GLuint* final_tex);
+    void write_png(const char *filename);
 
 	float camera_spin = 0.0f;
     float weights[20];
