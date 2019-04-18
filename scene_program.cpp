@@ -78,6 +78,7 @@ SceneProgram::SceneProgram() {
 		"	}\n"
 
 		"	color_out = texture(tex, texCoord) * vec4(color.rgb, 1.0);\n"
+        "   color_out.a = 1.0;\n"
 		"	control_out = controlColor;\n"
 
         //pixel shader stuff (dilution, pigment turbulence)

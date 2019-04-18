@@ -146,6 +146,7 @@ enum Stages{
 
 //Other globals
 bool surfaced = false; //so surface shader is only called once and when resizing
+bool pic_mode = false;
 int width, height;
 GLuint screen_tex;
 
@@ -229,7 +230,6 @@ Load< Scene > scene(LoadTagDefault, [](){
     static TWEAK_HINT(density_amount, "float 0.0 1.0");
     static TWEAK_HINT(show, "int 0 7");
     static TWEAK_HINT(depth_threshold, "float 0.0 0.001");
-    static TWEAK_HINT(wobble, "float 0.0, 5.0");
     static TWEAK_HINT(blur_amount, "int 0 10");
 	return ret;
 });
@@ -286,7 +286,7 @@ void GameMode::write_png(const char *filename){
             row[x*4] = pixels[(x+y*width)*4];
             row[x*4+1] = pixels[(x+y*width)*4+1];
             row[x*4+2] = pixels[(x+y*width)*4+2];
-            row[x*4+3] = 255;
+            row[x*4+3] = 255; //pixels[(x+y*width)*4+3];
         }
         png_write_row(png, row);
     }
@@ -348,7 +348,6 @@ struct Textures {
             alloc_tex(&bleeded_tex, GL_RGBA32F, GL_RGBA);
             alloc_tex(&surface_tex, GL_RGBA8, GL_RGBA);
             alloc_tex(&final_tex, GL_RGBA8, GL_RGBA);
-            screen_tex = final_tex;
 			GL_ERRORS();
 		}
 
@@ -487,7 +486,7 @@ void GameMode::draw_mrt_blur(GLuint color_tex, GLuint control_tex,
 	glViewport(0,0, textures.size.x, textures.size.y);
 	camera->aspect = textures.size.x / float(textures.size.y);
 
-    GLfloat black[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+    GLfloat black[4] = {0.0f, 0.0f, 0.0f, 1.0f};
     glClearBufferfv(GL_COLOR, 0, black);
     glClearBufferfv(GL_COLOR, 1, black);
 
@@ -639,7 +638,6 @@ void GameMode::draw_stylization(GLuint color_tex, GLuint control_tex,
 
 	glUseProgram(stylize_program->program);
     glUniform1f(stylize_program->density_amount, Parameters::density_amount);
-    glUniform1f(stylize_program->wobble, Parameters::wobble);
     glDrawArrays(GL_TRIANGLES, 0, 3);
 
     glActiveTexture(GL_TEXTURE0);
@@ -674,18 +672,31 @@ void GameMode::draw(glm::uvec2 const &drawable_size) {
 	//Copy scene from color buffer to screen, performing post-processing effects:
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glActiveTexture(GL_TEXTURE0);
-    if(Parameters::show == FINAL) //show different parts of pipeline for debug use
+    if(Parameters::show == FINAL){ //show different parts of pipeline for debug use
     	glBindTexture(GL_TEXTURE_2D, textures.final_tex);
-    else if(Parameters::show == CONTROL_COLORS)
+        screen_tex = textures.final_tex;
+    }else if(Parameters::show == CONTROL_COLORS){
         glBindTexture(GL_TEXTURE_2D, textures.control_tex);
-    else if(Parameters::show == GAUSSIAN_BLUR)
+        screen_tex = textures.control_tex;
+    }else if(Parameters::show == GAUSSIAN_BLUR){
         glBindTexture(GL_TEXTURE_2D, textures.blurred_tex);
-    else if(Parameters::show == BILATERAL_BLUR)
+        screen_tex = textures.blurred_tex;
+    }else if(Parameters::show == BILATERAL_BLUR){
         glBindTexture(GL_TEXTURE_2D, textures.bleeded_tex);
-    else if(Parameters::show == SURFACE)
+        screen_tex = textures.bleeded_tex;
+    }else if(Parameters::show == SURFACE){
         glBindTexture(GL_TEXTURE_2D, textures.surface_tex);
-    else
+        screen_tex = textures.surface_tex;
+    }else{
         glBindTexture(GL_TEXTURE_2D, textures.color_tex);
+        screen_tex = textures.color_tex;
+    }
+
+    if(pic_mode){
+        std::string filename = "renders/"+file+Parameters::filenum+".png";
+        write_png(filename.c_str());
+        Mode::set_current(nullptr);
+    }
 
     glDisable(GL_BLEND);
     glDisable(GL_DEPTH_TEST);

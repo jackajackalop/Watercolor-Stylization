@@ -33,6 +33,7 @@
 #include "parameters.hpp"
 
 extern std::string file;
+extern bool pic_mode;
 int main(int argc, char **argv) {
 #ifdef _WIN32
 	try {
@@ -47,44 +48,47 @@ int main(int argc, char **argv) {
     }
 
     //parsing input parameters
-    //-t elapsed time
-    //-s speed of hand tremors
-    //-f frequency of hand tremors
-    //-a dilute area variable
-    //-c cangiante variable
-    //-u dilution_variable
-    //-d density amount
-    //-p depth threshold
-    //-w wobble
-    //-b blur amount
-    //-l show
+    //-time = elapsed time
+    //-speed = speed of hand tremors
+    //-frequency = frequency of hand tremors
+    //-dA =  dilute area variable
+    //-cangiante = cangiante variable
+    //-dilution = dilution_variable
+    //-density = density amount
+    //-depth = depth threshold
+    //-blur = blur amount
+    //-show = show
+    //-file = filenum
+    //-save = turns on pic_mode and sets filenum
     int start = (argc%2==0 ? 2 : 1);
     for(int i = start; i<argc-1; i+=2){
-        if(strcmp(argv[i], "-t")==0){
+        if(strcmp(argv[i], "-time")==0){
             Parameters::elapsed_time = atof(argv[i+1]);
-        }else if(strcmp(argv[i], "-s")==0){
+        }else if(strcmp(argv[i], "-speed")==0){
             Parameters::speed = atof(argv[i+1]);
-        }else if(strcmp(argv[i], "-f")==0){
+        }else if(strcmp(argv[i], "-frequency")==0){
             Parameters::frequency = atof(argv[i+1]);
-        }else if(strcmp(argv[i], "-a") == 0){
+        }else if(strcmp(argv[i], "-dA") == 0){
             Parameters::dA = atof(argv[i+1]);
-        }else if(strcmp(argv[i],"-c") == 0){
+        }else if(strcmp(argv[i],"-cangiante") == 0){
             Parameters::cangiante_variable = atof(argv[i+1]);
-        }else if(strcmp(argv[i],"-u") == 0){
+        }else if(strcmp(argv[i],"-dilution") == 0){
             Parameters::dilution_variable = atof(argv[i+1]);
-        }else if(strcmp(argv[i],"-d") == 0){
+        }else if(strcmp(argv[i],"-density") == 0){
             Parameters::density_amount = atof(argv[i+1]);
-        }else if(strcmp(argv[i],"-p") == 0){
+        }else if(strcmp(argv[i],"-depth") == 0){
             Parameters::depth_threshold = atof(argv[i+1]);
-        }else if(strcmp(argv[i],"-b") == 0){
+        }else if(strcmp(argv[i],"-blur") == 0){
             Parameters::blur_amount = atof(argv[i+1]);
-        }else if(strcmp(argv[i],"-l") == 0){
+        }else if(strcmp(argv[i],"-show") == 0){
             Parameters::show = atoi(argv[i+1]);
-        }else if(strcmp(argv[i],"-w") == 0){
-            Parameters::wobble = atof(argv[i+1]);
-        }else if(strcmp(argv[i], "-n") == 0){
+        }else if(strcmp(argv[i], "-file") == 0){
             Parameters::filenum = argv[i+1];
+        }else if(strcmp(argv[i], "-save") == 0){
+            Parameters::filenum = argv[i+1];
+            pic_mode = true;
         }
+
     }
 	/*
 	//----- start connection to server ----

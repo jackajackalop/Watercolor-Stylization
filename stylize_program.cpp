@@ -17,7 +17,6 @@ StylizeProgram::StylizeProgram() {
         "uniform sampler2D bleeded_tex;\n"
         "uniform sampler2D surface_tex;\n"
         "uniform float density_amount;\n"
-        "uniform float wobble;\n"
         "layout(location=0) out vec4 final_out;\n"
 
         //calculates a vec4 that has each of its rgb components exponentiated
@@ -34,7 +33,7 @@ StylizeProgram::StylizeProgram() {
         "   vec4 surfaceColor = texelFetch(surface_tex, ivec2(gl_FragCoord.xy), 0);\n"
         //paper distortion
         "   float ctrl = texelFetch(control_tex, ivec2(gl_FragCoord.xy),0).r;\n"
-        "   vec2 shift_amt = wobble*ctrl*surfaceColor.gb; \n"
+        "   vec2 shift_amt = surfaceColor.gb; \n"
 
         //just getting all the values from each texture
         "   ivec2 shiftedCoord = ivec2(gl_FragCoord.xy+shift_amt);\n"
@@ -74,7 +73,6 @@ StylizeProgram::StylizeProgram() {
     glUniform1i(glGetUniformLocation(program, "surface_tex"), 4);
 
     density_amount = glGetUniformLocation(program, "density_amount");
-    wobble = glGetUniformLocation(program, "wobble");
 
 	glUseProgram(0);
 
