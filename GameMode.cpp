@@ -250,16 +250,35 @@ bool GameMode::handle_event(SDL_Event const &evt, glm::uvec2 const &window_size)
         if(evt.key.keysym.scancode == SDL_SCANCODE_SPACE){
             std::string filename = "renders/"+file+Parameters::filenum+".png";
             write_png(filename.c_str());
+        }else if(evt.key.keysym.scancode == SDL_SCANCODE_UP){
+            glm::mat3 directions = glm::mat3_cast(camera->transform->rotation);
+            glm::vec3 step = -1.0f * directions[2];
+            camera->transform->position+=step;
+        }else if(evt.key.keysym.scancode == SDL_SCANCODE_DOWN){
+            glm::mat3 directions = glm::mat3_cast(camera->transform->rotation);
+            glm::vec3 step = 1.0f * directions[2];
+            camera->transform->position+=step;
         }
     }
 
 	if (evt.type == SDL_MOUSEMOTION) {
 		if (evt.motion.state & SDL_BUTTON(SDL_BUTTON_LEFT)) {
-			camera_spin += 5.0f * evt.motion.xrel / float(window_size.x);
+            pitch -= 5.0f * evt.motion.yrel / float(window_size.y);
+            camera_rot = glm::angleAxis(pitch, glm::vec3(1.0f, 0.0f, 0.0f));
+
+			yaw += 5.0f * evt.motion.xrel / float(window_size.x);
+            camera_rot = glm::angleAxis(yaw, glm::vec3(0.0f, 0.0f, 1.0f))*camera_rot;
+
 			return true;
 		}
 	}
 
+/*    if(evt.type == SDL_MOUSEWHEEL){
+		if (evt.motion.state & SDL_BUTTON(SDL_BUTTON_WHEELUP)) {
+            std::cout<<"fjdlksfjdslk"<<std::endl;
+        }
+    }
+    */
 	return false;
 }
 
@@ -298,7 +317,8 @@ void GameMode::write_png(const char *filename){
 }
 
 void GameMode::update(float elapsed) {
-	camera_parent_transform->rotation = glm::angleAxis(camera_spin, glm::vec3(0.0f, 0.0f, 1.0f));
+	camera_parent_transform->rotation = glm::normalize(camera_rot);
+        //glm::angleAxis(camera_spin, glm::vec3(0.0f, 0.0f, 1.0f));
     Parameters::elapsed_time+=elapsed;
     TWEAK_SYNC();
 }

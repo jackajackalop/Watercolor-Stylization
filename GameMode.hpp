@@ -43,6 +43,9 @@ struct GameMode : public Mode {
                         GLuint bleeded_tex, GLuint* final_tex);
     void write_png(const char *filename);
 
-	float camera_spin = 0.0f;
+    glm::quat camera_rot =  glm::angleAxis(glm::radians(0.0f),
+            glm::vec3(1.0f, 0.0f, 0.0f));
+    float yaw = 0.0;
+    float pitch = 0.0;
     float weights[20];
 };
