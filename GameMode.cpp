@@ -161,7 +161,18 @@ float w7[7] = {0.136498f, 0.129188f, 0.109523f, 0.083173f, 0.056577f, 0.034474f,
 float w8[8] = {0.105915f, 0.102673f, 0.093531f, 0.080066f, 0.064408f, 0.048689f, 0.034587f, 0.023089f};
 float w9[9] = {0.102934f, 0.099783f, 0.090898f, 0.077812f, 0.062595f, 0.047318f, 0.033613f, 0.022439f, 0.014076f};
 float w10[10] = {0.101253f, 0.098154f, 0.089414f, 0.076542f, 0.061573f, 0.046546f, 0.033065f, 0.022072f, 0.013846f, 0.008162f};
-float* weight_arrays[] = {w1, w2, w3, w4, w5, w6, w7, w8, w9, w10};
+//TODO normalize
+float w11[11] = {0.082607f, 0.080977f, 0.076276f, 0.069041f, 0.060049f, 0.050187f, 0.040306f, 0.031105f, 0.023066f, 0.016436f, 0.011254f};
+float w12[12] = {0.081402f, 0.079795f, 0.075163f, 0.068033f, 0.059173f, 0.049455f, 0.039717f, 0.030651f, 0.022729f, 0.016196f, 0.01109f, 0.007297f};
+float w13[13] = {0.080657f, 0.079066f, 0.074476f, 0.067411f, 0.058632f, 0.049003f, 0.039354f, 0.03037f, 0.022521f, 0.016048f, 0.010989f, 0.00723f, 0.004571f};
+float w14[14] = {0.068078f, 0.067141f, 0.064407f, 0.060096f, 0.054541f, 0.048146f, 0.041339f, 0.034525f, 0.028045f, 0.022159f, 0.01703f, 0.01273f, 0.009256f, 0.006546f};
+float w15[15] = {0.06747f, 0.066542f, 0.063832f, 0.05956f, 0.054054f, 0.047716f, 0.04097f, 0.034216f, 0.027795f, 0.021961f, 0.016878f, 0.012617f, 0.009173f, 0.006488f, 0.004463f};
+float w16[16] = {0.06707f, 0.066147f, 0.063453f, 0.059206f, 0.053733f, 0.047433f, 0.040727f, 0.034013f, 0.02763f, 0.021831f, 0.016778f, 0.012542f, 0.009119f, 0.006449f, 0.004436f, 0.002968f};
+float w17[17] = {0.058012f, 0.057424f, 0.055695f, 0.05293f, 0.049287f, 0.044969f, 0.040202f, 0.035216f, 0.030226f, 0.02542f, 0.020946f, 0.016912f, 0.01338f, 0.010372f, 0.007878f, 0.005863f, 0.004275f};
+float w18[18] = {0.051308f, 0.050909f, 0.049732f, 0.047829f, 0.045287f, 0.042216f, 0.038744f, 0.035007f, 0.03114f, 0.027272f, 0.023514f, 0.019961f, 0.016682f, 0.013726f, 0.011118f, 0.008867f, 0.006962f, 0.005382f};
+float w19[19] = {0.046142f, 0.045858f, 0.045018f, 0.043651f, 0.041807f, 0.03955f, 0.036956f, 0.034109f, 0.031095f, 0.028001f, 0.024905f, 0.02188f, 0.018987f, 0.016274f, 0.013778f, 0.011522f, 0.009517f, 0.007765f, 0.006257f};
+float w20[20] = {0.042028f, 0.041819f, 0.041197f, 0.040181f, 0.0388f, 0.037094f, 0.03511f, 0.032903f, 0.030527f, 0.028041f, 0.025502f, 0.022962f, 0.02047f, 0.018066f, 0.015787f, 0.013657f, 0.011698f, 0.00992f, 0.008329f, 0.006923f};
+float* weight_arrays[] = {w1, w2, w3, w4, w5, w6, w7, w8, w9, w10, w11, w12, w13, w14, w15, w16, w17, w18, w19,w20};
 
 //Initial scene loading setup stuff
 Load< Scene > scene(LoadTagDefault, [](){
@@ -227,7 +238,7 @@ Load< Scene > scene(LoadTagDefault, [](){
     static TWEAK_HINT(dA, "float 0.0001 1.0");
     static TWEAK_HINT(cangiante_variable, "float 0.0 1.0");
     static TWEAK_HINT(dilution_variable, "float 0.0 1.0");
-    static TWEAK_HINT(density_amount, "float 0.0 1.0");
+    static TWEAK_HINT(density_amount, "float 0.0 5.0");
     static TWEAK_HINT(show, "int 0 7");
     static TWEAK_HINT(depth_threshold, "float 0.0 0.001");
     static TWEAK_HINT(blur_amount, "int 0 10");
@@ -247,18 +258,31 @@ bool GameMode::handle_event(SDL_Event const &evt, glm::uvec2 const &window_size)
 	}
 
     if(evt.type == SDL_KEYDOWN){
+        glm::mat3 directions = glm::mat3_cast(camera->transform->rotation);
         if(evt.key.keysym.scancode == SDL_SCANCODE_SPACE){
             std::string filename = "renders/"+file+Parameters::filenum+".png";
             write_png(filename.c_str());
-        }else if(evt.key.keysym.scancode == SDL_SCANCODE_UP){
-            glm::mat3 directions = glm::mat3_cast(camera->transform->rotation);
+        }else if(evt.key.keysym.scancode == SDL_SCANCODE_Q){
             glm::vec3 step = -1.0f * directions[2];
             camera->transform->position+=step;
-        }else if(evt.key.keysym.scancode == SDL_SCANCODE_DOWN){
-            glm::mat3 directions = glm::mat3_cast(camera->transform->rotation);
+        }else if(evt.key.keysym.scancode == SDL_SCANCODE_E){
             glm::vec3 step = 1.0f * directions[2];
             camera->transform->position+=step;
+        }else if(evt.key.keysym.scancode == SDL_SCANCODE_W){
+            glm::vec3 step = 0.5f * directions[1];
+            camera->transform->position+=step;
+        }else if(evt.key.keysym.scancode == SDL_SCANCODE_S){
+            glm::vec3 step = -0.5f * directions[1];
+            camera->transform->position+=step;
+        }else if(evt.key.keysym.scancode == SDL_SCANCODE_A){
+            glm::vec3 step = -0.5f * directions[0];
+            camera->transform->position+=step;
+        }else if(evt.key.keysym.scancode == SDL_SCANCODE_D){
+            glm::vec3 step = 0.5f * directions[0];
+            camera->transform->position+=step;
         }
+
+
     }
 
 	if (evt.type == SDL_MOUSEMOTION) {
@@ -340,7 +364,6 @@ struct Textures {
     GLuint control_temp_tex = 0;
 	void allocate(glm::uvec2 const &new_size) {
     //allocate full-screen framebuffer:
-
 		if (size != new_size) {
 			size = new_size;
             width = size.x;
@@ -420,7 +443,7 @@ void GameMode::draw_scene(GLuint* color_tex_, GLuint* control_tex_,
 	camera->aspect = textures.size.x / float(textures.size.y);
 
     GLfloat white[4] = {1.0f, 1.0f, 1.0f, 1.0f};
-    GLfloat black[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+    GLfloat black[4] = {0.0f, 0.5f, 0.0f, 0.0f};
     glClearBufferfv(GL_COLOR, 0, white);
     glClearBufferfv(GL_COLOR, 1, black);
 	glClear(GL_DEPTH_BUFFER_BIT);
@@ -459,7 +482,7 @@ void GameMode::draw_scene(GLuint* color_tex_, GLuint* control_tex_,
 
 //copies weights into the array that'll be passed as an uniform
 void GameMode::get_weights(){
-    if(Parameters::blur_amount>0 && Parameters::blur_amount<=10){
+    if(Parameters::blur_amount>0 && Parameters::blur_amount<=20){
         auto to_copy = weight_arrays[Parameters::blur_amount-1];
         for(int i = 0; i<Parameters::blur_amount; i++){
             weights[i] = to_copy[i];

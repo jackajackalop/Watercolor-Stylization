@@ -40,7 +40,7 @@ int main(int argc, char **argv) {
 #endif
 	struct {
 		std::string title = "Watercolor Stylization";
-		glm::uvec2 size = glm::uvec2(1280, 800);
+		glm::uvec2 size = glm::uvec2(1280, 800);//1329, 1329);
 	} config;
 
     if(argc>=2 && argv[1][0]!='-'){
