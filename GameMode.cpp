@@ -27,6 +27,7 @@
 #include <cstddef>
 #include <random>
 #include <png.h>
+#include <algorithm>
 
 #ifndef TWEAK_ENABLE
 #error "http-tweak not enabled"
@@ -321,15 +322,15 @@ void GameMode::write_png(const char *filename){
     png_write_info(png, info);
 
     glBindTexture(GL_TEXTURE_2D, screen_tex);
-    GLuint *pixels = new GLuint[width*height*4];
-    glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_INT, pixels);
+    std::vector<GLfloat> pixels(width*height*4, 0.0f);
+    glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_FLOAT, pixels.data());
     png_bytep row = (png_bytep)malloc(sizeof(png_byte)*width*4);
     for(int y = height-1; y >= 0; y--) {
         for(int x = 0; x<width; x++){
-            row[x*4] = pixels[(x+y*width)*4];
-            row[x*4+1] = pixels[(x+y*width)*4+1];
-            row[x*4+2] = pixels[(x+y*width)*4+2];
-            row[x*4+3] = 255; //pixels[(x+y*width)*4+3];
+            row[x*4] = glm::clamp(int32_t(pixels[(x+y*width)*4]*255), 0, 255);
+            row[x*4+1] = glm::clamp(int32_t(pixels[(x+y*width)*4+1]*255), 0, 255);
+            row[x*4+2] = glm::clamp(int32_t(pixels[(x+y*width)*4+2]*255), 0, 255);
+            row[x*4+3] = glm::clamp(int32_t(pixels[(x+y*width)*4+3]*255), 0, 255);
         }
         png_write_row(png, row);
     }
