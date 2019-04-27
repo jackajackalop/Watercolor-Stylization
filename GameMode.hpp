@@ -33,14 +33,16 @@ struct GameMode : public Mode {
 	//draw is called after update:
 	virtual void draw(glm::uvec2 const &drawable_size) override;
     void get_weights();
-    void draw_scene(GLuint* control_tex, GLuint* color_tex, GLuint* depth_tex);
-    void draw_mrt_blur(GLuint color_tex, GLuint depth_tex, GLuint control_tex,
-                GLuint* temp_tex1, GLuint* temp_tex2, GLuint* temp_tex3,
-                GLuint* blurred_tex, GLuint* bleeded_tex);
-    void draw_surface(GLuint paper_tex, GLuint *surface_tex);
-    void draw_stylization(GLuint control_tex, GLuint color_tex,
+    void draw_scene(GLuint* control_tex_, GLuint* color_tex_,
+            GLuint* depth_tex_);
+    void draw_mrt_blur(GLuint color_tex, GLuint control_tex, GLuint depth_tex,
+                GLuint* blur_temp_tex_, GLuint* bleed_temp_tex_,
+                GLuint* control_temp_tex_, GLuint* final_control_tex_,
+                GLuint* blurred_tex_, GLuint* bleeded_tex_);
+    void draw_surface(GLuint paper_tex, GLuint *surface_tex_);
+    void draw_stylization(GLuint final_control_tex, GLuint color_tex,
                         GLuint surface_tex, GLuint blurred_tex,
-                        GLuint bleeded_tex, GLuint* final_tex);
+                        GLuint bleeded_tex, GLuint* final_tex_);
     void write_png(const char *filename);
 
     glm::quat camera_rot =  glm::angleAxis(glm::radians(0.0f),

@@ -40,7 +40,7 @@ int main(int argc, char **argv) {
 #endif
 	struct {
 		std::string title = "Watercolor Stylization";
-		glm::uvec2 size = glm::uvec2(1280, 800);//1329, 1329);
+		glm::uvec2 size = glm::uvec2(2420,1311);//1280, 800);//1329, 1329);
 	} config;
 
     if(argc>=2 && argv[1][0]!='-'){
@@ -57,9 +57,11 @@ int main(int argc, char **argv) {
     //-density = density amount
     //-depth = depth threshold
     //-blur = blur amount
+    //-bleed = turns off and on bleed (0 is false, every other int is true)
+    //-distortion = turns off and on paper distortion (0 for false)
     //-show = show
-    //-file = filenum
-    //-save = turns on pic_mode and sets filenum
+    //-file = filename
+    //-save = turns on pic_mode and sets filename
     int start = (argc%2==0 ? 2 : 1);
     for(int i = start; i<argc-1; i+=2){
         if(strcmp(argv[i], "-time")==0){
@@ -80,12 +82,16 @@ int main(int argc, char **argv) {
             Parameters::depth_threshold = atof(argv[i+1]);
         }else if(strcmp(argv[i],"-blur") == 0){
             Parameters::blur_amount = atof(argv[i+1]);
+        }else if(strcmp(argv[i],"-bleed") == 0){
+            Parameters::bleed = atoi(argv[i+1]);
+        }else if(strcmp(argv[i],"-distortion") == 0){
+            Parameters::distortion = atoi(argv[i+1]);
         }else if(strcmp(argv[i],"-show") == 0){
             Parameters::show = atoi(argv[i+1]);
         }else if(strcmp(argv[i], "-file") == 0){
-            Parameters::filenum = argv[i+1];
+            Parameters::filename = argv[i+1];
         }else if(strcmp(argv[i], "-save") == 0){
-            Parameters::filenum = argv[i+1];
+            Parameters::filename = argv[i+1];
             pic_mode = true;
         }
 

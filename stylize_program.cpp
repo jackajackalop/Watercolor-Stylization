@@ -17,6 +17,8 @@ StylizeProgram::StylizeProgram() {
         "uniform sampler2D bleeded_tex;\n"
         "uniform sampler2D surface_tex;\n"
         "uniform float density_amount;\n"
+        "uniform bool bleed; \n"
+        "uniform bool distortion; \n "
         "layout(location=0) out vec4 final_out;\n"
 
         //calculates a vec4 that has each of its rgb components exponentiated
@@ -34,6 +36,7 @@ StylizeProgram::StylizeProgram() {
         //paper distortion
         "   float ctrl = texelFetch(control_tex, ivec2(gl_FragCoord.xy),0).r;\n"
         "   vec2 shift_amt = surfaceColor.gb; \n"
+        "   if(!distortion) shift_amt = vec2(0.0, 0.0); \n"
 
         //just getting all the values from each texture
         "   ivec2 shiftedCoord = ivec2(gl_FragCoord.xy+shift_amt);\n"
@@ -41,6 +44,7 @@ StylizeProgram::StylizeProgram() {
         "   vec4 colorColor = texelFetch(color_tex, shiftedCoord, 0);\n"
         "   vec4 blurredColor = texelFetch(blurred_tex, shiftedCoord, 0);\n"
         "   vec4 bleededColor = texelFetch(bleeded_tex, shiftedCoord, 0);\n"
+        "   if(!bleed) bleededColor = colorColor; \n"
 
         //color bleeding
         "   vec4 colorBleed = controlColor.b*(bleededColor-colorColor)+colorColor;\n"
@@ -61,7 +65,7 @@ StylizeProgram::StylizeProgram() {
         "   ctrl = texelFetch(control_tex, shiftedCoord,0).g;"
         "   vec4 granulated = saturation*(saturation-ctrl*density_amount*Piv)+(1.0-saturation)*pow_col(saturation, 1.0+(ctrl*density_amount*Piv)); \n"
         "   final_out = granulated*tint;\n"
-        //"   final_out = vec4(shift_amt, 0.0, 1.0);\n"
+        "   final_out.a = 1.0;\n"
 		"}\n"
 	);
 	glUseProgram(program);
@@ -73,6 +77,8 @@ StylizeProgram::StylizeProgram() {
     glUniform1i(glGetUniformLocation(program, "surface_tex"), 4);
 
     density_amount = glGetUniformLocation(program, "density_amount");
+    bleed = glGetUniformLocation(program, "bleed");
+    distortion = glGetUniformLocation(program, "distortion");
 
 	glUseProgram(0);
 

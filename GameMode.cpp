@@ -243,6 +243,9 @@ Load< Scene > scene(LoadTagDefault, [](){
     static TWEAK_HINT(show, "int 0 7");
     static TWEAK_HINT(depth_threshold, "float 0.0 0.001");
     static TWEAK_HINT(blur_amount, "int 0 10");
+    //TODO hmm does tweak not support bools?
+   // static TWEAK_HINT(bleed, "");
+   // static TWEAK_HINT(distortion, "");
 	return ret;
 });
 
@@ -261,7 +264,7 @@ bool GameMode::handle_event(SDL_Event const &evt, glm::uvec2 const &window_size)
     if(evt.type == SDL_KEYDOWN){
         glm::mat3 directions = glm::mat3_cast(camera->transform->rotation);
         if(evt.key.keysym.scancode == SDL_SCANCODE_SPACE){
-            std::string filename = "renders/"+file+Parameters::filenum+".png";
+            std::string filename = "renders/"+Parameters::filename+".png";
             write_png(filename.c_str());
         }else if(evt.key.keysym.scancode == SDL_SCANCODE_Q){
             glm::vec3 step = -1.0f * directions[2];
@@ -363,9 +366,11 @@ struct Textures {
     GLuint blur_temp_tex = 0; //temp textures are for two-pass blur
     GLuint bleed_temp_tex = 0;
     GLuint control_temp_tex = 0;
+    GLuint final_control_tex = 0;
 	void allocate(glm::uvec2 const &new_size) {
     //allocate full-screen framebuffer:
 		if (size != new_size) {
+            std::cout<<new_size.x<<" "<<new_size.y<<std::endl;
 			size = new_size;
             width = size.x;
             height = size.y;
@@ -389,6 +394,7 @@ struct Textures {
             alloc_tex(&blur_temp_tex, GL_RGBA32F, GL_RGBA);
             alloc_tex(&bleed_temp_tex, GL_RGBA32F, GL_RGBA);
             alloc_tex(&control_temp_tex, GL_RGBA32F, GL_RGBA);
+            alloc_tex(&final_control_tex, GL_RGBA32F, GL_RGBA);
             alloc_tex(&bleeded_tex, GL_RGBA32F, GL_RGBA);
             alloc_tex(&surface_tex, GL_RGBA8, GL_RGBA);
             alloc_tex(&final_tex, GL_RGBA8, GL_RGBA);
@@ -495,15 +501,18 @@ void GameMode::get_weights(){
 //bilateral blur
 void GameMode::draw_mrt_blur(GLuint color_tex, GLuint control_tex,
         GLuint depth_tex, GLuint *blur_temp_tex_, GLuint *bleed_temp_tex_,
-        GLuint *control_temp_tex_, GLuint* blurred_tex_, GLuint* bleeded_tex_){
+        GLuint *control_temp_tex_, GLuint* final_control_tex_,
+        GLuint* blurred_tex_, GLuint* bleeded_tex_){
     assert(blurred_tex_);
     assert(bleeded_tex_);
     assert(blur_temp_tex_);
     assert(bleed_temp_tex_);
     assert(control_temp_tex_);
+    assert(final_control_tex_);
     auto &blur_temp_tex = *blur_temp_tex_;
     auto &bleed_temp_tex = *bleed_temp_tex_;
     auto &control_temp_tex = *control_temp_tex_;
+    auto &final_control_tex = *final_control_tex_;
     auto &blurred_tex = *blurred_tex_;
     auto &bleeded_tex = *bleeded_tex_;
 
@@ -563,7 +572,7 @@ void GameMode::draw_mrt_blur(GLuint color_tex, GLuint control_tex,
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D,
                             bleeded_tex, 0);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D,
-                            control_tex, 0);
+                            final_control_tex, 0);
     {
         GLenum bufs[3] = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2};
         glDrawBuffers(3, bufs);
@@ -639,7 +648,7 @@ void GameMode::draw_surface(GLuint paper_tex, GLuint* surface_tex_){
 }
 
 //combines paper effects, edge darkening, and bleeding into final texture
-void GameMode::draw_stylization(GLuint color_tex, GLuint control_tex,
+void GameMode::draw_stylization(GLuint color_tex, GLuint final_control_tex,
                             GLuint surface_tex, GLuint blurred_tex,
                             GLuint bleeded_tex, GLuint* final_tex_){
     assert(final_tex_);
@@ -672,7 +681,7 @@ void GameMode::draw_stylization(GLuint color_tex, GLuint control_tex,
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, color_tex);
     glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_2D, control_tex);
+    glBindTexture(GL_TEXTURE_2D, final_control_tex);
     glActiveTexture(GL_TEXTURE2);
     glBindTexture(GL_TEXTURE_2D, blurred_tex);
     glActiveTexture(GL_TEXTURE3);
@@ -682,6 +691,8 @@ void GameMode::draw_stylization(GLuint color_tex, GLuint control_tex,
 
 	glUseProgram(stylize_program->program);
     glUniform1f(stylize_program->density_amount, Parameters::density_amount);
+    glUniform1f(stylize_program->bleed, Parameters::bleed);
+    glUniform1f(stylize_program->distortion, Parameters::distortion);
     glDrawArrays(GL_TRIANGLES, 0, 3);
 
     glActiveTexture(GL_TEXTURE0);
@@ -703,13 +714,13 @@ void GameMode::draw(glm::uvec2 const &drawable_size) {
     draw_scene(&textures.color_tex, &textures.control_tex, &textures.depth_tex);
     draw_mrt_blur(textures.color_tex, textures.control_tex, textures.depth_tex,
                 &textures.blur_temp_tex, &textures.bleed_temp_tex,
-                &textures.control_temp_tex, &textures.blurred_tex,
-                &textures.bleeded_tex);
+                &textures.control_temp_tex, &textures.final_control_tex,
+                &textures.blurred_tex, &textures.bleeded_tex);
 
     //only needs to be updated when resized since it doesn't change
     if(!surfaced)
         draw_surface(*paper_tex, &textures.surface_tex);
-    draw_stylization(textures.color_tex, textures.control_tex,
+    draw_stylization(textures.color_tex, textures.final_control_tex,
             textures.surface_tex, textures.blurred_tex, textures.bleeded_tex,
             &textures.final_tex);
 
@@ -737,7 +748,7 @@ void GameMode::draw(glm::uvec2 const &drawable_size) {
     }
 
     if(pic_mode){
-        std::string filename = "renders/"+file+Parameters::filenum+".png";
+        std::string filename = "renders/"+Parameters::filename+".png";
         write_png(filename.c_str());
         Mode::set_current(nullptr);
     }

@@ -8,6 +8,8 @@ struct StylizeProgram {
 	//opengl program object:
 	GLuint program = 0;
     GLuint density_amount = -1U;
+    GLuint bleed = -1U;
+    GLuint distortion = -1U;
 
 	//uniform locations:
 	StylizeProgram();
